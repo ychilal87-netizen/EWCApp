@@ -1532,7 +1532,30 @@
     </div>
   </div>
 
-  <script>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    // ===== FIREBASE CONFIGURATION & INITIALIZATION =====
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+    import {
+      getDatabase, ref, set, get, push, update, onValue, child
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDbAnGrbLF9v1K7UF6qCKnpDd_SE_ogySg",
+      authDomain: "electronic-wealth-class.firebaseapp.com",
+      databaseURL: "https://electronic-wealth-class-default-rtdb.firebaseio.com",
+      projectId: "electronic-wealth-class",
+      storageBucket: "electronic-wealth-class.firebasestorage.app",
+      messagingSenderId: "965170674536",
+      appId: "1:965170674536:web:b5a97b7dde05d1e574f4dd",
+      measurementId: "G-EED1CZN1P1"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(firebaseApp);
+    const db = getDatabase(firebaseApp);
+
     // ===== VIP PLANS CONFIGURATION =====
     const VIP_PLANS = [
       { id: 'vip1', name: 'VIP 1', price: 500, daily: 100, days: 60, phoneIcon: '📱', color: '#42A5F5', model: 'Samsung A14' },
@@ -1555,10 +1578,8 @@
       { level: 7, target: 1280000, reward: 128000 },
     ];
 
-    // ===== DATABASE STORAGE KEYS =====
-    const DB_USERS_KEY = 'ewc_single_users_db_v2';
-    const DB_TXS_KEY = 'ewc_single_txs_db_v2';
-    const DB_SESSION_KEY = 'ewc_single_sess_db_v2';
+    // ===== SESSION KEY (still uses localStorage just for session uid) =====
+    const DB_SESSION_KEY = 'ewc_firebase_sess_uid';
 
     // ===== APPLICATION STATE CONFIGURATION =====
     let state = {
@@ -1572,52 +1593,98 @@
       activePendingTxId: null,
     };
 
-    // Initialize initial system database
-    function initDatabase() {
-      if (!localStorage.getItem(DB_USERS_KEY)) {
-        const seedUsers = {
-          'demo_acc': {
-            id: 'demo_acc',
-            phone: '911111111',
-            balance: 15400,
-            inviteCode: 'EWC911',
-            invitedBy: null,
-            bankName: 'SIMULATED MEMBER',
-            bankAcc: '100083920192',
-            activeVip: 'vip2',
-            vipPurchasedAt: Date.now() - 3600000 * 24,
-            vipExpiry: Date.now() + 3600000 * 24 * 59,
-            vipLastPaid: Date.now() - 3600000 * 12,
-            teamDeposit: 45000,
-            registeredAt: Date.now() - 3600000 * 240,
-            hasApprovedDeposit: true
-          }
-        };
-        localStorage.setItem(DB_USERS_KEY, JSON.stringify(seedUsers));
-      }
+    // ===== FIREBASE DATABASE HELPERS =====
 
-      if (!localStorage.getItem(DB_TXS_KEY)) {
+    async function fbGetUser(uid) {
+      const snap = await get(ref(db, `users/${uid}`));
+      return snap.exists() ? snap.val() : null;
+    }
+
+    async function fbSetUser(uid, data) {
+      await set(ref(db, `users/${uid}`), data);
+    }
+
+    async function fbUpdateUser(uid, fields) {
+      await update(ref(db, `users/${uid}`), fields);
+    }
+
+    async function fbGetUserByPhone(phone) {
+      const snap = await get(ref(db, 'users'));
+      if (!snap.exists()) return null;
+      const users = snap.val();
+      return Object.values(users).find(u => u.phone === phone) || null;
+    }
+
+    async function fbGetUserByInviteCode(code) {
+      const snap = await get(ref(db, 'users'));
+      if (!snap.exists()) return null;
+      const users = snap.val();
+      return Object.values(users).find(u => u.inviteCode === code) || null;
+    }
+
+    async function fbLogTransaction(tx) {
+      const txRef = ref(db, `transactions/${tx.id}`);
+      await set(txRef, tx);
+    }
+
+    async function fbGetUserTransactions(uid) {
+      const snap = await get(ref(db, 'transactions'));
+      if (!snap.exists()) return [];
+      const all = snap.val();
+      return Object.values(all).filter(t => t.userId === uid);
+    }
+
+    async function fbCheckPhoneExists(phone) {
+      const snap = await get(ref(db, 'users'));
+      if (!snap.exists()) return false;
+      const users = snap.val();
+      return Object.values(users).some(u => u.phone === phone);
+    }
+
+    // ===== INITIALIZE DEMO SEED DATA (only if DB empty) =====
+    async function initDatabaseIfEmpty() {
+      const snap = await get(ref(db, 'users/demo_acc'));
+      if (!snap.exists()) {
+        const seedUser = {
+          id: 'demo_acc',
+          phone: '911111111',
+          balance: 15400,
+          inviteCode: 'EWC911',
+          invitedBy: null,
+          bankName: 'SIMULATED MEMBER',
+          bankAcc: '100083920192',
+          activeVip: 'vip2',
+          vipPurchasedAt: Date.now() - 3600000 * 24,
+          vipExpiry: Date.now() + 3600000 * 24 * 59,
+          vipLastPaid: Date.now() - 3600000 * 12,
+          teamDeposit: 45000,
+          registeredAt: Date.now() - 3600000 * 240,
+          hasApprovedDeposit: true
+        };
+        await fbSetUser('demo_acc', seedUser);
+
         const seedTxs = [
           { id: 'tx_seed_1', userId: 'demo_acc', type: 'commission', amount: 600, desc: 'Registration Bonus 🎁', status: 'approved', ts: Date.now() - 3600000 * 240 },
           { id: 'tx_seed_2', userId: 'demo_acc', type: 'deposit', amount: 1500, ft: 'FT240162098', orderRef: 'EWC928103', status: 'approved', ts: Date.now() - 3600000 * 50 },
           { id: 'tx_seed_3', userId: 'demo_acc', type: 'vip', amount: -1500, desc: 'VIP 2 Plan Purchased 🛒', status: 'approved', ts: Date.now() - 3600000 * 48 },
           { id: 'tx_seed_4', userId: 'demo_acc', type: 'commission', amount: 300, desc: 'VIP 2 Daily Mining Reward 💰', status: 'approved', ts: Date.now() - 3600000 * 12 }
         ];
-        localStorage.setItem(DB_TXS_KEY, JSON.stringify(seedTxs));
+        for (const tx of seedTxs) {
+          await fbLogTransaction(tx);
+        }
       }
     }
 
-    // Load Local Storages
-    function loadState() {
-      initDatabase();
+    // ===== LOAD STATE FROM FIREBASE =====
+    async function loadState() {
+      await initDatabaseIfEmpty();
       const sessId = localStorage.getItem(DB_SESSION_KEY);
       if (sessId) {
-        const users = JSON.parse(localStorage.getItem(DB_USERS_KEY));
-        if (users[sessId]) {
-          state.currentUser = users[sessId];
-          const allTxs = JSON.parse(localStorage.getItem(DB_TXS_KEY));
-          state.transactions = allTxs.filter(t => t.userId === sessId);
-          checkAndProcessAutoMining(); // Check daily income on load
+        const user = await fbGetUser(sessId);
+        if (user) {
+          state.currentUser = user;
+          state.transactions = await fbGetUserTransactions(sessId);
+          checkAndProcessAutoMining();
           showMainApp();
         } else {
           showAuthScreen();
@@ -1628,7 +1695,7 @@
     }
 
     // AUTOMATIC INCOME LOGIC (Every 24 hours)
-    function checkAndProcessAutoMining() {
+    async function checkAndProcessAutoMining() {
       if (!state.currentUser || !state.currentUser.activeVip) return;
       
       const now = Date.now();
@@ -1639,13 +1706,15 @@
         const daysToPay = Math.floor(hourDiff / 24);
         const plan = VIP_PLANS.find(v => v.id === state.currentUser.activeVip);
         const totalIncome = plan.daily * daysToPay;
-
         const newPaidTime = lastPaid + (daysToPay * 24 * 60 * 60 * 1000);
-        
-        saveCurrentUserUpdate({
-          balance: state.currentUser.balance + totalIncome,
+
+        const updatedBalance = state.currentUser.balance + totalIncome;
+        await fbUpdateUser(state.currentUser.id, {
+          balance: updatedBalance,
           vipLastPaid: newPaidTime
         });
+        state.currentUser.balance = updatedBalance;
+        state.currentUser.vipLastPaid = newPaidTime;
 
         const tx = {
           id: 'auto_mining_' + now,
@@ -1656,45 +1725,39 @@
           status: 'approved',
           ts: now
         };
-        logNewTransaction(tx);
+        await fbLogTransaction(tx);
+        state.transactions.push(tx);
         showToast(`💰 የ ${daysToPay} ቀን ገቢ +${totalIncome.toLocaleString()} ETB በራስ-ሰር ተጨምሯል!`, 'success');
+        renderStateUI();
       }
     }
 
-    // Save single user updates
-    function saveCurrentUserUpdate(fields) {
+    // Save current user fields to Firebase
+    async function saveCurrentUserUpdate(fields) {
       if (!state.currentUser) return;
-      const users = JSON.parse(localStorage.getItem(DB_USERS_KEY));
-      const uid = state.currentUser.id;
-      users[uid] = { ...users[uid], ...fields };
-      localStorage.setItem(DB_USERS_KEY, JSON.stringify(users));
-      state.currentUser = users[uid];
+      await fbUpdateUser(state.currentUser.id, fields);
+      state.currentUser = { ...state.currentUser, ...fields };
       renderStateUI();
     }
 
-    // Log Transaction record
-    function logNewTransaction(tx) {
-      const all = JSON.parse(localStorage.getItem(DB_TXS_KEY));
-      all.push(tx);
-      localStorage.setItem(DB_TXS_KEY, JSON.stringify(all));
+    // Log Transaction to Firebase
+    async function logNewTransaction(tx) {
+      await fbLogTransaction(tx);
       if (state.currentUser && tx.userId === state.currentUser.id) {
         state.transactions.push(tx);
       }
     }
 
-    function reloadTransactionsInMemory() {
-      if (!state.currentUser) return;
-      const all = JSON.parse(localStorage.getItem(DB_TXS_KEY));
-      state.transactions = all.filter(t => t.userId === state.currentUser.id);
-      renderTransactionsList();
-    }
-
+    // ===== INVITE CODE URL HANDLER =====
+    // Only sets invite code in form — does NOT redirect to dashboard
     function checkInviteURLQuery() {
       const params = new URLSearchParams(window.location.search);
       const referralCode = params.get('ref');
       if (referralCode) {
         document.getElementById('reg-invite').value = referralCode;
         document.getElementById('inv-val').textContent = referralCode;
+        // Switch to register tab so user sees the referral code
+        switchAuthTab('register');
       }
     }
 
@@ -1706,6 +1769,7 @@
       tabBtns[0].classList.toggle('active', tab === 'register');
       tabBtns[1].classList.toggle('active', tab === 'login');
     }
+    window.switchAuthTab = switchAuthTab;
 
     function navigateTo(pageId) {
       state.activeNavTab = pageId;
@@ -1724,6 +1788,7 @@
       document.getElementById('page-title-label').textContent = titles[pageId] || '';
       renderStateUI();
     }
+    window.navigateTo = navigateTo;
 
     function showToast(msg, type = 'info') {
       const el = document.getElementById('toast');
@@ -1796,6 +1861,8 @@
       document.getElementById('loading-screen').style.display = 'none';
       document.getElementById('auth-page').style.display = 'flex';
       document.getElementById('main-app').style.display = 'none';
+      // Apply referral code from URL after auth screen shows
+      checkInviteURLQuery();
     }
 
     function showMainApp() {
@@ -1817,7 +1884,7 @@
       showToast(`የማረጋገጫ ኮድዎ፡ ${code}`, 'success');
     };
 
-    window.handleRegister = function(e) {
+    window.handleRegister = async function(e) {
       e.preventDefault();
       const phone = document.getElementById('reg-phone').value.trim();
       const pass = document.getElementById('reg-pass').value;
@@ -1827,8 +1894,9 @@
       if (pass.length < 6) return showToast('የይለፍ ቃል ቢያንስ 6 ቁምፊ ይሁን!', 'error');
       if (verify !== state.fakeCodeSent) return showToast('ትክክለኛ ያልሆነ ማረጋገጫ ኮድ!', 'error');
 
-      const users = JSON.parse(localStorage.getItem(DB_USERS_KEY));
-      if (Object.values(users).find(u => u.phone === phone)) return showToast('ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!', 'error');
+      showToast('እየተመዘገቡ ነው...', 'info');
+      const phoneExists = await fbCheckPhoneExists(phone);
+      if (phoneExists) return showToast('ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!', 'error');
 
       const uid = 'ewc_' + Math.random().toString(36).substring(2, 9);
       const newUser = {
@@ -1837,24 +1905,54 @@
         vipPurchasedAt: null, vipExpiry: null, vipLastPaid: null, teamDeposit: 0,
         registeredAt: Date.now(), hasApprovedDeposit: false
       };
-      users[uid] = newUser;
-      localStorage.setItem(DB_USERS_KEY, JSON.stringify(users));
-      logNewTransaction({ id: 'tx_welcome_' + Date.now(), userId: uid, type: 'commission', amount: 600, desc: 'Registration Bonus 🎁', status: 'approved', ts: Date.now() });
+      await fbSetUser(uid, newUser);
+
+      const welcomeTx = {
+        id: 'tx_welcome_' + Date.now(),
+        userId: uid,
+        type: 'commission',
+        amount: 600,
+        desc: 'Registration Bonus 🎁',
+        status: 'approved',
+        ts: Date.now()
+      };
+      await fbLogTransaction(welcomeTx);
+
+      // Credit referral commission to inviter (L1: 30% of registration bonus = 180 ETB)
+      if (invite && invite !== 'EWC2024') {
+        const inviter = await fbGetUserByInviteCode(invite);
+        if (inviter) {
+          const commissionAmt = Math.round(600 * 0.30);
+          await fbUpdateUser(inviter.id, { balance: (inviter.balance || 0) + commissionAmt });
+          await fbLogTransaction({
+            id: 'tx_ref_comm_' + Date.now(),
+            userId: inviter.id,
+            type: 'commission',
+            amount: commissionAmt,
+            desc: `L1 ኮሚሽን - ${phone} ምዝገባ 🎁`,
+            status: 'approved',
+            ts: Date.now()
+          });
+        }
+      }
+
       localStorage.setItem(DB_SESSION_KEY, uid);
       state.currentUser = newUser;
+      state.transactions = [welcomeTx];
       showMainApp();
     };
 
-    window.handleLogin = function(e) {
+    window.handleLogin = async function(e) {
       e.preventDefault();
       const phone = document.getElementById('login-phone').value.trim();
-      const pass = document.getElementById('login-pass').value;
-      const users = JSON.parse(localStorage.getItem(DB_USERS_KEY));
-      const user = Object.values(users).find(u => u.phone === phone);
+      showToast('እየተረጋገጠ ነው...', 'info');
+      const user = await fbGetUserByPhone(phone);
       if (!user) return showToast('አካውንት አልተገኘም!', 'error');
       localStorage.setItem(DB_SESSION_KEY, user.id);
       state.currentUser = user;
-      loadState();
+      state.transactions = await fbGetUserTransactions(user.id);
+      checkAndProcessAutoMining();
+      showMainApp();
     };
 
     window.handleSignOut = function() {
@@ -1862,11 +1960,11 @@
       window.location.reload();
     };
 
-    window.saveBankInformation = function() {
+    window.saveBankInformation = async function() {
       const name = document.getElementById('bank-holder-name').value.trim();
       const acc = document.getElementById('bank-acc-num').value.trim();
       if (!name || !acc) return showToast('ሁሉንም መረጃ ይሙሉ።', 'error');
-      saveCurrentUserUpdate({ bankName: name, bankAcc: acc });
+      await saveCurrentUserUpdate({ bankName: name, bankAcc: acc });
       showToast('መረጃው ተቀምጧል! 🏦', 'success');
     };
 
@@ -1895,20 +1993,30 @@
       }, 1000);
     }
 
-    window.confirmPaymentAndSubmit = function() {
+    window.confirmPaymentAndSubmit = async function() {
       clearInterval(state.depositTimer);
       const amt = parseFloat(document.getElementById('input-dep-amount').value);
       const ft = document.getElementById('input-dep-ft').value.trim();
       const orderRef = document.getElementById('lbl-dep-order-ref').textContent;
       const txId = 'tx_dep_' + Date.now();
-      logNewTransaction({ id: txId, userId: state.currentUser.id, type: 'deposit', amount: amt, ft: ft, orderRef: orderRef, status: 'waiting', ts: Date.now() });
+      const tx = {
+        id: txId,
+        userId: state.currentUser.id,
+        type: 'deposit',
+        amount: amt,
+        ft: ft,
+        orderRef: orderRef,
+        status: 'waiting',
+        ts: Date.now()
+      };
+      await logNewTransaction(tx);
       document.getElementById('dep-step-2').style.display = 'none';
       document.getElementById('dep-step-3').style.display = 'block';
       document.getElementById('dep-pstep3').className = 'p-step active';
       document.getElementById('dep-pstep2').className = 'p-step done';
     };
 
-    window.submitWithdrawalRequest = function() {
+    window.submitWithdrawalRequest = async function() {
       const amt = parseFloat(document.getElementById('input-with-amount').value);
       if (isNaN(amt) || amt < 1000) return showToast('ዝቅተኛ ማውጫ 1000 ETB ነው!', 'error');
       if (state.currentUser.balance < amt) return showToast('በቂ ቀሪ ሂሳብ የለም!', 'error');
@@ -1918,26 +2026,49 @@
       if (hour < 9 || hour >= 21) return showToast('ከ 3:00 - 3:00 ሰዓት ብቻ ይቻላል!', 'error');
       if (new Date().getDay() === 0) return showToast('እሁድ ማውጣት አይቻልም!', 'error');
 
-      saveCurrentUserUpdate({ balance: state.currentUser.balance - amt });
-      logNewTransaction({ id: 'tx_with_' + Date.now(), userId: state.currentUser.id, type: 'withdraw', amount: -amt, netAmount: net, status: 'waiting', ts: Date.now(), desc: `Withdrawal (Fee 15%)` });
+      await saveCurrentUserUpdate({ balance: state.currentUser.balance - amt });
+      await logNewTransaction({
+        id: 'tx_with_' + Date.now(),
+        userId: state.currentUser.id,
+        type: 'withdraw',
+        amount: -amt,
+        netAmount: net,
+        status: 'waiting',
+        ts: Date.now(),
+        desc: `Withdrawal (Fee 15%)`
+      });
       closeModal('withdraw-modal');
       showToast(`ጥያቄው ተልኳል፤ አድሚን ሲያጸድቅ ይላካል!`, 'success');
     };
 
-    window.purchaseVipPlan = function(vipId) {
+    window.setWithdrawAmountAll = function() {
+      if (state.currentUser) {
+        document.getElementById('input-with-amount').value = state.currentUser.balance;
+      }
+    };
+
+    window.purchaseVipPlan = async function(vipId) {
       if (!state.currentUser.hasApprovedDeposit) return showToast('VIP ለመግዛት መጀመሪያ ዲፖዚት ማድረግ አለብዎት!', 'error');
       const plan = VIP_PLANS.find(v => v.id === vipId);
       if (state.currentUser.balance < plan.price) return showToast(`በቂ ቀሪ ሂሳብ የለም፤ ${plan.price} ETB ያስፈልጋል!`, 'error');
       if (!confirm(`${plan.name} ለመግዛት እርግጠኛ ነዎት?`)) return;
 
-      saveCurrentUserUpdate({
+      await saveCurrentUserUpdate({
         balance: state.currentUser.balance - plan.price,
         activeVip: vipId,
         vipPurchasedAt: Date.now(),
         vipExpiry: Date.now() + plan.days * 24 * 3600 * 1000,
         vipLastPaid: Date.now()
       });
-      logNewTransaction({ id: 'tx_vip_buy_' + Date.now(), userId: state.currentUser.id, type: 'vip', amount: -plan.price, desc: `${plan.name} Purchased 👑`, status: 'approved', ts: Date.now() });
+      await logNewTransaction({
+        id: 'tx_vip_buy_' + Date.now(),
+        userId: state.currentUser.id,
+        type: 'vip',
+        amount: -plan.price,
+        desc: `${plan.name} Purchased 👑`,
+        status: 'approved',
+        ts: Date.now()
+      });
       showToast(`${plan.name} ገቢ ዕቅድ በርቷል!`, 'success');
     };
 
@@ -1961,7 +2092,7 @@
         vipLabel.textContent = 'No VIP';
         banner.style.display = 'none';
       }
-      document.getElementById('referral-link-disp').textContent = `${window.location.origin}/?ref=${u.inviteCode}`;
+      document.getElementById('referral-link-disp').textContent = `${window.location.origin}${window.location.pathname}?ref=${u.inviteCode}`;
       renderVipList();
       renderTransactionsList();
       renderPortfolioMilestones();
@@ -2048,12 +2179,6 @@
       });
     }
 
-    window.onload = function() {
-      loadState();
-      checkInviteURLQuery();
-      setTimeout(() => { document.getElementById('loading-screen').style.display = 'none'; }, 1500);
-    };
-
     window.switchTxTab = function(tab) {
       state.activeTxTab = tab;
       document.querySelectorAll('.tx-tab').forEach((el, index) => {
@@ -2061,6 +2186,12 @@
         el.classList.toggle('active', tabs[index] === tab);
       });
       renderTransactionsList();
+    };
+
+    // ===== APP ENTRY POINT =====
+    window.onload = async function() {
+      await loadState();
+      setTimeout(() => { document.getElementById('loading-screen').style.display = 'none'; }, 1500);
     };
   </script>
 </body>
