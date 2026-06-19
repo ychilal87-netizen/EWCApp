@@ -1,1434 +1,2067 @@
 <!DOCTYPE html>
 <html lang="am">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Electronic Wealth Class</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --gold:#FFD700;--gold2:#FFA500;--green:#00C853;--green2:#69F0AE;
-  --dark:#0A0E1A;--dark2:#111827;--dark3:#1C2333;--dark4:#242E45;
-  --blue:#1565C0;--blue2:#1E88E5;--accent:#00E5FF;
-  --text:#E8EAF6;--text2:#90CAF9;--text3:#B0BEC5;
-  --card:rgba(28,35,51,0.95);--border:rgba(255,215,0,0.2);
-  --red:#FF5252;--yellow:#FFD600;
-}
-body{background:var(--dark);color:var(--text);font-family:'Poppins',sans-serif;min-height:100vh;overflow-x:hidden;}
-/* SCROLLBAR */
-::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--dark2);}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
-/* LOADING */
-#loading-screen{position:fixed;inset:0;background:var(--dark);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
-.loader-logo{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--gold);text-align:center;animation:pulse 1.5s infinite;}
-.loader-bar{width:200px;height:4px;background:var(--dark3);border-radius:4px;overflow:hidden;}
-.loader-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--green));animation:load 2s ease-in-out forwards;}
-@keyframes load{0%{width:0}100%{width:100%}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-/* AUTH PAGES */
-#auth-page{display:none;min-height:100vh;background:linear-gradient(135deg,#0A0E1A 0%,#111827 50%,#0d1b2e 100%);position:relative;overflow:hidden;}
-#auth-page::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,215,0,0.08) 0%,transparent 70%);border-radius:50%;}
-#auth-page::after{content:'';position:absolute;bottom:-100px;left:-100px;width:300px;height:300px;background:radial-gradient(circle,rgba(0,200,83,0.06) 0%,transparent 70%);border-radius:50%;}
-.auth-container{max-width:420px;margin:0 auto;padding:40px 20px;position:relative;z-index:1;}
-.auth-logo{text-align:center;margin-bottom:32px;}
-.auth-logo h1{font-family:'Orbitron',sans-serif;font-size:20px;background:linear-gradient(135deg,var(--gold),var(--green2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.3;}
-.auth-logo .subtitle{font-size:11px;color:var(--text3);margin-top:6px;letter-spacing:2px;text-transform:uppercase;}
-.auth-logo .logo-icon{width:70px;height:70px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 30px rgba(255,215,0,0.3);font-size:30px;}
-.auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 28px;backdrop-filter:blur(10px);}
-.auth-tabs{display:flex;margin-bottom:28px;background:var(--dark2);border-radius:12px;padding:4px;}
-.auth-tab{flex:1;padding:10px;text-align:center;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text3);transition:all 0.3s;}
-.auth-tab.active{background:linear-gradient(135deg,var(--green),var(--green2));color:#000;font-weight:700;}
-.form-group{margin-bottom:18px;}
-.form-label{font-size:11px;color:var(--text2);margin-bottom:8px;display:block;letter-spacing:0.5px;font-weight:500;}
-.input-wrap{position:relative;display:flex;align-items:center;}
-.input-prefix{background:var(--dark4);border:1px solid var(--border);border-right:none;padding:12px 14px;border-radius:10px 0 0 10px;color:var(--gold);font-size:13px;font-weight:600;white-space:nowrap;}
-.form-input{width:100%;background:var(--dark4);border:1px solid var(--border);padding:12px 16px;border-radius:10px;color:var(--text);font-size:13px;font-family:'Poppins',sans-serif;transition:all 0.3s;outline:none;}
-.form-input.with-prefix{border-radius:0 10px 10px 0;border-left:none;}
-.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,215,0,0.1);}
-.form-input::placeholder{color:var(--text3);font-size:12px;}
-.verification-row{display:flex;gap:10px;}
-.verification-row .form-input{flex:1;}
-.verify-btn{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;padding:12px 16px;border-radius:10px;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;transition:all 0.3s;font-family:'Poppins',sans-serif;}
-.verify-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(30,136,229,0.4);}
-.btn-primary{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#000;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:'Poppins',sans-serif;letter-spacing:0.5px;margin-top:8px;}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,200,83,0.4);}
-.btn-primary:active{transform:translateY(0);}
-.invite-auto{background:var(--dark3);border:1px dashed var(--border);padding:12px 16px;border-radius:10px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;}
-.invite-auto span{color:var(--gold);font-weight:600;}
-/* MAIN APP */
-#main-app{display:none;min-height:100vh;background:var(--dark);padding-bottom:80px;}
-/* TOP BAR */
-.topbar{background:linear-gradient(135deg,var(--dark2),var(--dark3));padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);box-shadow:0 2px 20px rgba(0,0,0,0.5);}
-.topbar-logo{font-family:'Orbitron',sans-serif;font-size:13px;background:linear-gradient(135deg,var(--gold),var(--green2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900;}
-.topbar-icons{display:flex;align-items:center;gap:14px;}
-.topbar-icon{width:36px;height:36px;background:var(--dark4);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;border:1px solid var(--border);font-size:16px;}
-.topbar-icon:hover{border-color:var(--gold);transform:scale(1.1);}
-/* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--dark2);border-top:1px solid var(--border);display:flex;z-index:100;padding:8px 0 4px;}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;cursor:pointer;transition:all 0.3s;}
-.nav-item .nav-icon{font-size:20px;transition:all 0.3s;}
-.nav-item .nav-label{font-size:9px;color:var(--text3);font-weight:500;transition:all 0.3s;}
-.nav-item.active .nav-icon{filter:drop-shadow(0 0 6px var(--gold));}
-.nav-item.active .nav-label{color:var(--gold);font-weight:700;}
-/* PAGES */
-.page{display:none;padding:18px;}
-.page.active{display:block;animation:fadeIn 0.3s ease;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-/* BALANCE CARD */
-.balance-card{background:linear-gradient(135deg,#1a2744,#0d1b36);border:1px solid var(--border);border-radius:20px;padding:24px 20px;margin-bottom:18px;position:relative;overflow:hidden;}
-.balance-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(255,215,0,0.15),transparent);border-radius:50%;}
-.balance-label{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
-.balance-amount{font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.balance-sub{font-size:11px;color:var(--text3);margin-top:4px;}
-.balance-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
-.balance-btn{background:var(--dark4);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:all 0.3s;}
-.balance-btn.deposit{border-color:rgba(0,200,83,0.4);background:rgba(0,200,83,0.08);}
-.balance-btn.withdraw{border-color:rgba(255,214,0,0.4);background:rgba(255,214,0,0.08);}
-.balance-btn:hover{transform:translateY(-2px);}
-.balance-btn .btn-icon{font-size:22px;margin-bottom:6px;}
-.balance-btn .btn-text{font-size:12px;font-weight:600;color:var(--text);}
-.balance-btn.deposit .btn-text{color:var(--green2);}
-.balance-btn.withdraw .btn-text{color:var(--yellow);}
-/* FLOATING CARDS */
-.floating-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
-.float-card{background:var(--card);border-radius:18px;padding:18px 16px;border:1px solid var(--border);transition:all 0.3s;cursor:pointer;position:relative;overflow:hidden;}
-.float-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 60%,rgba(255,215,0,0.05));pointer-events:none;}
-.float-card:hover{transform:translateY(-3px);border-color:var(--gold);}
-.float-card-title{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;}
-.bank-account-box{background:var(--dark3);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.bank-name{font-size:12px;color:var(--gold);font-weight:700;margin-bottom:4px;}
-.bank-acc{font-size:15px;font-family:'Orbitron',sans-serif;color:var(--text);font-weight:700;margin-bottom:8px;letter-spacing:1px;}
-.copy-btn{background:linear-gradient(135deg,var(--green),var(--green2));color:#000;border:none;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:'Poppins',sans-serif;}
-.copy-btn:hover{transform:scale(1.05);}
-.withdraw-info{font-size:11px;color:var(--text3);line-height:1.8;}
-.withdraw-info strong{color:var(--yellow);}
-/* INFO BANNER */
-.info-banner{background:linear-gradient(135deg,var(--dark3),var(--dark4));border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px;}
-.info-banner h3{font-size:13px;color:var(--gold);font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.info-item{background:var(--dark2);border-radius:10px;padding:10px 12px;border-left:3px solid var(--green);}
-.info-item.warn{border-left-color:var(--yellow);}
-.info-item.red{border-left-color:var(--red);}
-.info-item .info-key{font-size:10px;color:var(--text3);margin-bottom:4px;}
-.info-item .info-val{font-size:12px;color:var(--text);font-weight:600;}
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:flex-end;justify-content:center;padding:20px;}
-.modal-overlay.active{display:flex;animation:fadeIn 0.2s ease;}
-.modal{background:var(--dark2);border:1px solid var(--border);border-radius:24px 24px 0 0;width:100%;max-width:500px;padding:28px 22px 40px;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease;}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-handle{width:40px;height:4px;background:var(--dark4);border-radius:4px;margin:0 auto 24px;}
-.modal-title{font-size:18px;font-weight:700;color:var(--gold);margin-bottom:22px;display:flex;align-items:center;gap:10px;}
-/* PAYMENT GATEWAY */
-.payment-steps{display:flex;gap:0;margin-bottom:24px;background:var(--dark3);border-radius:12px;padding:4px;}
-.p-step{flex:1;padding:10px 6px;text-align:center;border-radius:10px;font-size:11px;font-weight:600;color:var(--text3);transition:all 0.3s;}
-.p-step.done{background:var(--blue2);color:#fff;}
-.p-step.active{background:linear-gradient(135deg,var(--green),var(--green2));color:#000;}
-.bank-transfer-box{background:linear-gradient(135deg,#1a2744,#0d1b36);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;text-align:center;}
-.transfer-amount{font-family:'Orbitron',sans-serif;font-size:28px;color:var(--gold);font-weight:900;margin-bottom:8px;}
-.transfer-note{font-size:11px;color:var(--text3);margin-bottom:16px;}
-.transfer-timer{font-size:13px;color:var(--red);font-weight:700;margin-bottom:12px;}
-.transfer-account{background:var(--dark3);border-radius:12px;padding:14px;text-align:left;}
-.transfer-account .ta-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;}
-.transfer-account .ta-label{color:var(--text3);}
-.transfer-account .ta-val{color:var(--text);font-weight:600;}
-.payment-tips{background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:12px;padding:14px;margin-bottom:20px;}
-.payment-tips h4{color:var(--red);font-size:12px;font-weight:700;margin-bottom:10px;}
-.payment-tips li{font-size:11px;color:var(--text3);margin-bottom:8px;padding-left:4px;}
-.payment-tips .highlight{color:var(--gold);}
-.btn-submit{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#000;border:none;padding:15px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:'Poppins',sans-serif;margin-top:8px;}
-.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,200,83,0.4);}
-.btn-yellow{background:linear-gradient(135deg,var(--yellow),var(--gold2));color:#000;}
-.btn-yellow:hover{box-shadow:0 8px 25px rgba(255,214,0,0.4);}
-/* UPLOAD */
-.upload-area{border:2px dashed var(--border);border-radius:14px;padding:24px;text-align:center;cursor:pointer;transition:all 0.3s;background:var(--dark3);}
-.upload-area:hover{border-color:var(--gold);background:rgba(255,215,0,0.05);}
-.upload-area .upload-icon{font-size:32px;margin-bottom:8px;}
-.upload-area .upload-text{font-size:12px;color:var(--text3);}
-.upload-preview{width:100%;max-height:160px;object-fit:cover;border-radius:12px;margin-top:12px;display:none;}
-/* WAITING STATUS */
-.status-waiting{background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:16px;}
-.status-dot{width:10px;height:10px;border-radius:50%;background:var(--gold2);animation:blink 1.2s infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
-.status-text{font-size:12px;color:var(--gold2);font-weight:600;}
-.status-approved{background:rgba(0,200,83,0.1);border-color:rgba(0,200,83,0.3);}
-.status-approved .status-dot{background:var(--green);}
-.status-approved .status-text{color:var(--green2);}
-/* VIP */
-.vip-header{text-align:center;padding:20px 0;background:linear-gradient(180deg,var(--dark2),transparent);}
-.vip-header h2{font-family:'Orbitron',sans-serif;font-size:20px;background:linear-gradient(135deg,var(--gold),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.vip-grid{display:flex;flex-direction:column;gap:16px;}
-.vip-card{background:var(--card);border-radius:20px;padding:20px;border:1px solid var(--border);position:relative;overflow:hidden;transition:all 0.3s;}
-.vip-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
-.vip1::before{background:linear-gradient(90deg,#90CAF9,#42A5F5);}
-.vip2::before{background:linear-gradient(90deg,#A5D6A7,#66BB6A);}
-.vip3::before{background:linear-gradient(90deg,#FFE082,#FFD54F);}
-.vip4::before{background:linear-gradient(90deg,#FFAB91,#FF7043);}
-.vip5::before{background:linear-gradient(90deg,#CE93D8,#AB47BC);}
-.vip6::before{background:linear-gradient(90deg,#80DEEA,#26C6DA);}
-.vip7::before{background:linear-gradient(90deg,var(--gold),var(--gold2));}
-.vip-card:hover{transform:translateY(-2px);border-color:var(--gold);}
-.vip-top{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
-.vip-phone{font-size:48px;line-height:1;}
-.vip-info h3{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--gold);font-weight:900;}
-.vip-info .vip-price{font-size:18px;font-weight:700;color:var(--text);margin-top:2px;}
-.vip-info .vip-price span{font-size:11px;color:var(--text3);}
-.vip-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
-.vip-stat{background:var(--dark3);border-radius:10px;padding:10px;text-align:center;}
-.vip-stat .vs-label{font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;}
-.vip-stat .vs-val{font-size:13px;font-weight:700;color:var(--green2);}
-.vip-stat .vs-val.gold{color:var(--gold);}
-.buy-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;padding:13px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:'Poppins',sans-serif;}
-.buy-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,215,0,0.4);}
-.vip-owned{background:linear-gradient(135deg,var(--green),var(--green2));color:#000;}
-/* TRANSACTION */
-.tx-tabs{display:flex;background:var(--dark3);border-radius:12px;padding:4px;margin-bottom:18px;gap:4px;}
-.tx-tab{flex:1;padding:9px 4px;text-align:center;border-radius:10px;font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;transition:all 0.3s;}
-.tx-tab.active{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;}
-.tx-list{display:flex;flex-direction:column;gap:10px;}
-.tx-item{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;}
-.tx-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.tx-icon.dep{background:rgba(0,200,83,0.15);}
-.tx-icon.with{background:rgba(255,214,0,0.15);}
-.tx-icon.com{background:rgba(0,229,255,0.15);}
-.tx-icon.vip-tx{background:rgba(255,215,0,0.15);}
-.tx-body{flex:1;}
-.tx-type{font-size:12px;font-weight:600;color:var(--text);}
-.tx-date{font-size:10px;color:var(--text3);margin-top:2px;}
-.tx-detail{font-size:10px;color:var(--text2);margin-top:2px;}
-.tx-amount{font-size:14px;font-weight:700;white-space:nowrap;}
-.tx-amount.pos{color:var(--green2);}
-.tx-amount.neg{color:var(--red);}
-.tx-status{font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;margin-top:4px;display:inline-block;}
-.tx-status.wait{background:rgba(255,165,0,0.15);color:var(--gold2);}
-.tx-status.success{background:rgba(0,200,83,0.15);color:var(--green2);}
-/* PORTFOLIO */
-.portfolio-header{background:linear-gradient(135deg,var(--dark2),var(--dark3));border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px;}
-.portfolio-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.portfolio-total h3{font-size:13px;color:var(--text3);}
-.portfolio-total .total{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--gold);font-weight:900;}
-.portfolio-levels{display:flex;flex-direction:column;gap:10px;}
-.level-item{background:var(--dark4);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;}
-.level-num{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.level-body{flex:1;}
-.level-body .lv-title{font-size:12px;font-weight:600;color:var(--text);}
-.level-body .lv-target{font-size:10px;color:var(--text3);margin-top:2px;}
-.level-progress{margin-top:8px;}
-.prog-bar{height:4px;background:var(--dark2);border-radius:4px;overflow:hidden;}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--green2));border-radius:4px;transition:width 0.8s ease;}
-.level-reward{text-align:right;flex-shrink:0;}
-.level-reward .reward-amount{font-size:13px;font-weight:700;color:var(--green2);}
-.claim-btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.3s;margin-top:6px;font-family:'Poppins',sans-serif;}
-.claim-btn:disabled{background:var(--dark3);color:var(--text3);cursor:not-allowed;}
-.claim-btn:not(:disabled):hover{transform:scale(1.05);}
-/* MY PAGE */
-.my-profile{background:linear-gradient(135deg,var(--dark2),var(--dark3));border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:18px;text-align:center;}
-.my-avatar{width:70px;height:70px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;}
-.my-phone{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;}
-.my-id{font-size:11px;color:var(--text3);}
-.my-badge{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;margin-top:8px;}
-.my-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;}
-.my-section h3{font-size:13px;color:var(--gold);font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-.my-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.my-row:last-child{margin-bottom:0;}
-.my-row label{font-size:11px;color:var(--text3);width:80px;flex-shrink:0;}
-.my-row .form-input{flex:1;}
-.invite-link-box{background:var(--dark3);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;}
-.invite-link-box .link-text{flex:1;font-size:11px;color:var(--text2);word-break:break-all;}
-.signout-btn{width:100%;background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.3);color:var(--red);padding:13px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;font-family:'Poppins',sans-serif;}
-.signout-btn:hover{background:rgba(255,82,82,0.2);}
-/* FLOATING ELEMENTS */
-.help-btn{position:fixed;bottom:90px;right:16px;z-index:200;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;}
-.help-avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--accent));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,229,255,0.4);border:2px solid var(--accent);animation:float 3s ease-in-out infinite;overflow:hidden;}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.help-avatar svg{width:34px;height:34px;}
-.help-label{font-size:9px;color:var(--accent);font-weight:700;background:var(--dark3);padding:2px 8px;border-radius:10px;}
-/* NOTIFICATION */
-.notif{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--dark2);border:1px solid var(--border);border-radius:14px;padding:12px 20px;font-size:12px;color:var(--text);z-index:1000;min-width:260px;text-align:center;display:none;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
-.notif.show{display:block;animation:slideDown 0.3s ease;}
-@keyframes slideDown{from{transform:translateX(-50%) translateY(-10px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
-.notif.success{border-color:var(--green);background:rgba(0,200,83,0.1);}
-.notif.error{border-color:var(--red);background:rgba(255,82,82,0.1);}
-.notif.info{border-color:var(--blue2);background:rgba(30,136,229,0.1);}
-/* SECTION TITLE */
-.sec-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
-/* TIPS MODAL */
-.tips-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:600;display:none;align-items:center;justify-content:center;padding:20px;}
-.tips-modal.active{display:flex;}
-.tips-box{background:var(--dark2);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;animation:zoomIn 0.3s ease;}
-@keyframes zoomIn{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
-.tips-box h3{font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;}
-.tips-box p{font-size:12px;color:var(--text3);line-height:1.7;text-align:left;margin-bottom:6px;}
-.tips-box .highlight{color:var(--gold);font-weight:600;}
-.tips-ok{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;padding:12px 40px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:18px;font-family:'Poppins',sans-serif;transition:all 0.3s;}
-.tips-ok:hover{transform:translateY(-2px);}
-/* PASSWORD CHANGE */
-.pwd-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;}
-.pwd-section h3{font-size:13px;color:var(--gold);font-weight:700;margin-bottom:16px;}
-/* EMPTY STATE */
-.empty-state{text-align:center;padding:40px 20px;color:var(--text3);}
-.empty-state .empty-icon{font-size:48px;margin-bottom:12px;}
-.empty-state p{font-size:13px;}
-/* WITHDRAW FORM */
-.w-bank-info{background:var(--dark3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;}
-.w-bank-info .wb-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;}
-.w-bank-info .wb-label{color:var(--text3);}
-.w-bank-info .wb-val{color:var(--text);font-weight:600;}
-.w-bank-info .wb-val.bank{color:var(--green2);}
-.min-note{font-size:11px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
-.min-note span{color:var(--yellow);font-weight:600;}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Electronic Wealth Class (EWC)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --gold: #FFD700;
+      --gold2: #FFA500;
+      --green: #00C853;
+      --green2: #69F0AE;
+      --dark: #0A0E1A;
+      --dark2: #111827;
+      --dark3: #1C2333;
+      --dark4: #242E45;
+      --blue: #1565C0;
+      --blue2: #1E88E5;
+      --accent: #00E5FF;
+      --text: #E8EAF6;
+      --text2: #90CAF9;
+      --text3: #B0BEC5;
+      --card: rgba(28, 35, 51, 0.95);
+      --border: rgba(255, 215, 0, 0.2);
+      --red: #FF5252;
+      --yellow: #FFD600;
+    }
+    
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--dark2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--gold);
+      border-radius: 4px;
+    }
+    
+    /* LOADING SCREEN */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--dark);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .loader-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      color: var(--gold);
+      text-align: center;
+      animation: pulse 1.5s infinite;
+    }
+    .loader-bar {
+      width: 200px;
+      height: 4px;
+      background: var(--dark3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .loader-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--green));
+      animation: load 1.5s ease-in-out forwards;
+    }
+    @keyframes load {
+      0% { width: 0; }
+      100% { width: 100%; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* AUTH PAGES */
+    #auth-page {
+      display: none;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0A0E1A 0%, #111827 50%, #0d1b2e 100%);
+      position: relative;
+      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-container {
+      max-width: 420px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .auth-logo h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      background: linear-gradient(135deg, var(--gold), var(--green2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.3;
+    }
+    .auth-logo .subtitle {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 6px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .auth-logo .logo-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 0 30px rgba(255,215,0,0.3);
+      font-size: 30px;
+    }
+    .auth-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      backdrop-filter: blur(10px);
+    }
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 28px;
+      background: var(--dark2);
+      border-radius: 12px;
+      padding: 4px;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text3);
+      transition: all 0.3s;
+    }
+    .auth-tab.active {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #000;
+      font-weight: 700;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      font-size: 11px;
+      color: var(--text2);
+      margin-bottom: 8px;
+      display: block;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-prefix {
+      background: var(--dark4);
+      border: 1px solid var(--border);
+      border-right: none;
+      padding: 12.5px 14px;
+      border-radius: 10px 0 0 10px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--dark4);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s;
+      outline: none;
+    }
+    .form-input.with-prefix {
+      border-radius: 0 10px 10px 0;
+      border-left: none;
+    }
+    .form-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(255,215,0,0.1);
+    }
+    .form-input::placeholder {
+      color: var(--text3);
+      font-size: 12px;
+    }
+    .verification-row {
+      display: flex;
+      gap: 10px;
+    }
+    .verification-row .form-input {
+      flex: 1;
+    }
+    .verify-btn {
+      background: linear-gradient(135deg, var(--blue), var(--blue2));
+      color: #fff;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.3s;
+      font-family: 'Poppins', sans-serif;
+    }
+    .verify-btn:hover {
+      box-shadow: 0 4px 15px rgba(30,136,229,0.4);
+    }
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,200,83,0.4);
+    }
+    .invite-auto {
+      background: var(--dark3);
+      border: 1px dashed var(--border);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .invite-auto span {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    
+    /* MAIN APP */
+    #main-app {
+      display: none;
+      min-height: 100vh;
+      background: var(--dark);
+      padding-bottom: 80px;
+      max-width: 600px;
+      margin: 0 auto;
+      border-left: 1px solid rgba(255,215,0,0.1);
+      border-right: 1px solid rgba(255,215,0,0.1);
+    }
+    
+    /* TOP BAR */
+    .topbar {
+      background: linear-gradient(135deg, var(--dark2), var(--dark3));
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+    }
+    .topbar-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      background: linear-gradient(135deg, var(--gold), var(--green2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 900;
+    }
+    .topbar-icons {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .telegram-btn {
+      width: 36px;
+      height: 36px;
+      background: var(--dark4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .telegram-btn:hover {
+      border-color: #0088cc;
+      transform: scale(1.05);
+    }
+    
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--dark2);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+      padding: 10px 0;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .nav-item .nav-icon {
+      font-size: 20px;
+      transition: all 0.2s;
+    }
+    .nav-item .nav-label {
+      font-size: 10px;
+      color: var(--text3);
+      font-weight: 500;
+    }
+    .nav-item.active .nav-icon {
+      filter: drop-shadow(0 0 6px var(--gold));
+      transform: scale(1.1);
+    }
+    .nav-item.active .nav-label {
+      color: var(--gold);
+      font-weight: 700;
+    }
+    
+    /* PAGES */
+    .page {
+      display: none;
+      padding: 18px;
+    }
+    .page.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* BALANCE CARD */
+    .balance-card {
+      background: linear-gradient(135deg, #1a2744, #0d1b36);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 20px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .balance-label {
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .balance-amount {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .balance-sub {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 4px;
+    }
+    .balance-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .balance-btn {
+      background: var(--dark4);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .balance-btn.deposit {
+      border-color: rgba(0, 200, 83, 0.4);
+      background: rgba(0, 200, 83, 0.08);
+    }
+    .balance-btn.withdraw {
+      border-color: rgba(255, 214, 0, 0.4);
+      background: rgba(255, 214, 0, 0.08);
+    }
+    .balance-btn:hover {
+      transform: translateY(-2px);
+    }
+    .balance-btn .btn-icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+    .balance-btn .btn-text {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .balance-btn.deposit .btn-text { color: var(--green2); }
+    .balance-btn.withdraw .btn-text { color: var(--yellow); }
+    
+    /* FLOATING CARDS */
+    .floating-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 480px) {
+      .floating-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+    .float-card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 18px 16px;
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    .float-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--gold);
+    }
+    .float-card-title {
+      font-size: 11px;
+      color: var(--text3);
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .bank-account-box {
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .bank-name {
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .bank-acc {
+      font-size: 14px;
+      font-family: 'Orbitron', sans-serif;
+      color: var(--text);
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    .copy-btn {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #000;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      transform: scale(1.05);
+    }
+    .withdraw-info {
+      font-size: 11px;
+      color: var(--text3);
+      line-height: 1.8;
+    }
+    .withdraw-info strong {
+      color: var(--yellow);
+    }
+    
+    /* ABOUT INFO BOX */
+    .info-banner {
+      background: linear-gradient(135deg, var(--dark3), var(--dark4));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .info-banner h3 {
+      font-size: 13px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .info-item {
+      background: var(--dark2);
+      border-radius: 10px;
+      padding: 10px 12px;
+      border-left: 3px solid var(--green);
+    }
+    .info-item.warn { border-left-color: var(--yellow); }
+    .info-item.red { border-left-color: var(--red); }
+    .info-item .info-key {
+      font-size: 10px;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+    .info-item .info-val {
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 600;
+    }
+    
+    /* MODAL POPUPS */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 500;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal {
+      background: var(--dark2);
+      border: 1px solid var(--border);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-width: 500px;
+      padding: 24px 20px 40px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--dark4);
+      border-radius: 4px;
+      margin: 0 auto 20px;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+    
+    /* PAYMENTS STEP INDICATOR */
+    .payment-steps {
+      display: flex;
+      margin-bottom: 24px;
+      background: var(--dark3);
+      border-radius: 12px;
+      padding: 4px;
+    }
+    .p-step {
+      flex: 1;
+      padding: 10px 6px;
+      text-align: center;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      transition: all 0.3s;
+    }
+    .p-step.done {
+      background: var(--blue2);
+      color: #fff;
+    }
+    .p-step.active {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #000;
+    }
+    
+    /* TRANSFERS BOX */
+    .bank-transfer-box {
+      background: linear-gradient(135deg, #1a2744, #0d1b36);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .transfer-amount {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      color: var(--gold);
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .transfer-timer {
+      font-size: 13px;
+      color: var(--red);
+      font-weight: 700;
+      margin-bottom: 12px;
+      animation: pulse 1s infinite;
+    }
+    .transfer-account {
+      background: var(--dark3);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: left;
+    }
+    .transfer-account .ta-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .transfer-account .ta-label { color: var(--text3); }
+    .transfer-account .ta-val { color: var(--text); font-weight: 600; }
+    
+    .payment-tips {
+      background: rgba(255,82,82,0.08);
+      border: 1px solid rgba(255,82,82,0.2);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 20px;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+    .payment-tips h4 {
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .payment-tips li {
+      margin-bottom: 6px;
+    }
+    .payment-tips .highlight {
+      color: var(--gold);
+      font-weight: bold;
+    }
+    
+    /* VIP SECTION UI */
+    .vip-header {
+      text-align: center;
+      padding: 10px 0 20px;
+    }
+    .vip-header h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      background: linear-gradient(135deg, var(--gold), var(--yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .vip-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .vip-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .vip-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+    .vip1::before { background: #42A5F5; }
+    .vip2::before { background: #66BB6A; }
+    .vip3::before { background: #FFD54F; }
+    .vip4::before { background: #FF7043; }
+    .vip5::before { background: #AB47BC; }
+    .vip6::before { background: #26C6DA; }
+    .vip7::before { background: var(--gold); }
+    
+    .vip-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .vip-phone {
+      font-size: 40px;
+      line-height: 1;
+    }
+    .vip-info h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      color: var(--gold);
+      font-weight: 900;
+    }
+    .vip-price {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 2px;
+    }
+    .vip-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .vip-stat {
+      background: var(--dark3);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .vip-stat .vs-label {
+      font-size: 9px;
+      color: var(--text3);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .vip-stat .vs-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green2);
+    }
+    .vip-stat .vs-val.gold { color: var(--gold); }
+    
+    .buy-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #000;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .buy-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255,215,0,0.4);
+    }
+    .buy-btn.owned {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #000;
+      cursor: default;
+    }
+    
+    /* PORTFOLIO & TEAM */
+    .portfolio-header {
+      background: linear-gradient(135deg, var(--dark2), var(--dark3));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .portfolio-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .portfolio-total .total {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      color: var(--gold);
+      font-weight: 900;
+    }
+    .portfolio-levels {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .level-item {
+      background: var(--dark4);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .level-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #000;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .level-body {
+      flex: 1;
+    }
+    .level-progress {
+      margin-top: 6px;
+    }
+    .prog-bar {
+      height: 4px;
+      background: var(--dark2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--green2));
+      width: 0%;
+      transition: width 0.8s ease;
+    }
+    .level-reward {
+      text-align: right;
+    }
+    .level-reward .reward-amount {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green2);
+    }
+    
+    /* TRANSACTION RECORD LIST */
+    .tx-tabs {
+      display: flex;
+      background: var(--dark3);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 18px;
+    }
+    .tx-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      cursor: pointer;
+    }
+    .tx-tab.active {
+      background: linear-gradient(135deg, var(--blue), var(--blue2));
+      color: #fff;
+    }
+    .tx-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tx-item {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tx-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .tx-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--dark4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .tx-details {
+      display: flex;
+      flex-direction: column;
+    }
+    .tx-title {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .tx-time {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+    .tx-right {
+      text-align: right;
+    }
+    .tx-amount {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .tx-amount.plus { color: var(--green2); }
+    .tx-amount.minus { color: var(--red); }
+    .tx-status-badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+      font-weight: bold;
+    }
+    .tx-status-badge.waiting { background: rgba(255,165,0,0.15); color: var(--gold2); }
+    .tx-status-badge.approved { background: rgba(0,200,83,0.15); color: var(--green2); }
+    
+    /* MY PAGE STYLES */
+    .my-profile {
+      background: linear-gradient(135deg, var(--dark2), var(--dark3));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+    .my-avatar {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 12px;
+    }
+    .my-phone {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .my-id {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+    .my-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #000;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 10px;
+    }
+    
+    .my-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    .my-section h3 {
+      font-size: 13px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    
+    .invite-link-box {
+      background: var(--dark3);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .link-text {
+      font-size: 11px;
+      color: var(--text2);
+      word-break: break-all;
+    }
+    
+    /* TOAST NOTIFICATIONS */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: var(--dark2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 12px;
+      color: var(--text);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      text-align: center;
+      min-width: 280px;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast.success { border-color: var(--green); background: rgba(0, 200, 83, 0.15); }
+    .toast.error { border-color: var(--red); background: rgba(255, 82, 82, 0.15); }
+    .toast.info { border-color: var(--blue2); background: rgba(30, 136, 229, 0.15); }
+    
+    /* FLOATING HELP */
+    .telegram-float {
+      position: fixed;
+      bottom: 90px;
+      right: 18px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .tg-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,229,255,0.3);
+      border: 2px solid var(--accent);
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .tg-label {
+      font-size: 9px;
+      color: var(--accent);
+      font-weight: 700;
+      background: var(--dark3);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div id="loading-screen">
-  <div class="loader-logo">⚡ Electronic Wealth Class</div>
-  <div class="loader-bar"><div class="loader-fill"></div></div>
-  <div style="font-size:11px;color:var(--text3);margin-top:8px;">Loading...</div>
-</div>
-
-<!-- NOTIFICATION -->
-<div class="notif" id="notif"></div>
-
-<!-- TIPS MODAL -->
-<div class="tips-modal" id="tips-modal">
-  <div class="tips-box">
-    <h3>💡 Tips</h3>
-    <p>When making payment, <span class="highlight">Please be sure to fill in the Order Code!</span></p>
-    <p>After the payment is successful, <span class="highlight">you must come back here and submit your Transaction ID</span>, Only then your money will reach your account!</p>
-    <p style="color:var(--red);font-weight:600;margin-top:10px;">⚠️ Please do not transfer funds to accounts twice. Do not save these accounts to make payments, or you will lose your money!</p>
-    <button class="tips-ok" onclick="closeTipsModal()">OK</button>
+  <!-- LOADING LAYER -->
+  <div id="loading-screen">
+    <div class="loader-logo">⚡ Electronic Wealth Class</div>
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+    <div style="font-size:11px;color:var(--text3);">Loading Account Database...</div>
   </div>
-</div>
 
-<!-- AUTH PAGE -->
-<div id="auth-page">
-  <div class="auth-container">
-    <div class="auth-logo">
-      <div class="logo-icon">💰</div>
-      <h1>Electronic Wealth Class</h1>
-      <p class="subtitle">Your Gateway to Financial Freedom</p>
-    </div>
-    <div class="auth-card">
-      <div class="auth-tabs">
-        <div class="auth-tab active" onclick="switchAuth('register')">Register</div>
-        <div class="auth-tab" onclick="switchAuth('login')">Sign In</div>
-      </div>
-      <!-- REGISTER FORM -->
-      <div id="register-form">
-        <div class="form-group">
-          <label class="form-label">📱 Phone Number</label>
-          <div class="input-wrap">
-            <div class="input-prefix">+251</div>
-            <input class="form-input with-prefix" type="tel" id="reg-phone" placeholder="9XXXXXXXX" maxlength="9"/>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">🔐 Password (min 6 digits)</label>
-          <input class="form-input" type="password" id="reg-pass" placeholder="Enter password"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">✅ Verification Code</label>
-          <div class="verification-row">
-            <input class="form-input" type="text" id="reg-verify" placeholder="Enter code" maxlength="6"/>
-            <button class="verify-btn" onclick="sendVerification()">Get Code</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">🎁 Invitation Code</label>
-          <div class="invite-auto">
-            <span>🔗</span>
-            <span id="inv-code-display">Auto-filled: <span id="inv-val">EWC2024</span></span>
-          </div>
-          <input type="hidden" id="reg-invite" value="EWC2024"/>
-        </div>
-        <button class="btn-primary" onclick="doRegister()">✨ Sign Up</button>
-      </div>
-      <!-- LOGIN FORM -->
-      <div id="login-form" style="display:none;">
-        <div class="form-group">
-          <label class="form-label">📱 Phone Number</label>
-          <div class="input-wrap">
-            <div class="input-prefix">+251</div>
-            <input class="form-input with-prefix" type="tel" id="login-phone" placeholder="9XXXXXXXX" maxlength="9"/>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">🔐 Password</label>
-          <input class="form-input" type="password" id="login-pass" placeholder="Enter password"/>
-        </div>
-        <button class="btn-primary" onclick="doLogin()">🚀 Sign In</button>
-        <div style="text-align:center;margin-top:14px;">
-          <span style="font-size:12px;color:var(--text3);">Don't have an account? </span>
-          <span style="font-size:12px;color:var(--gold);cursor:pointer;font-weight:600;" onclick="switchAuth('register')">Register Now</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+  <!-- TOAST ALERTS -->
+  <div id="toast" class="toast"></div>
 
-<!-- MAIN APP -->
-<div id="main-app">
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <div class="topbar-logo">⚡ EWC</div>
-    <div style="flex:1;text-align:center;font-size:11px;color:var(--text3);" id="topbar-title">Electronic Wealth Class</div>
-    <div class="topbar-icons">
-      <div class="topbar-icon" onclick="window.open('https://t.me/+lWyXw3Yii8c3MDcx','_blank')" title="Telegram Group">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.27 13.617l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.878.942z" fill="#0088cc"/></svg>
+  <!-- MAIN AUTH PAGE -->
+  <div id="auth-page" style="display: flex;">
+    <div class="auth-container">
+      <div class="auth-logo">
+        <div class="logo-icon">💰</div>
+        <h1>Electronic Wealth Class</h1>
+        <p class="subtitle">የኢትዮጵያ ምርጥ የበይነመረብ ገቢ ማግኛ</p>
+      </div>
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <div class="auth-tab active" onclick="switchAuthTab('register')">ተመዝገብ (Register)</div>
+          <div class="auth-tab" onclick="switchAuthTab('login')">ግባ (Sign In)</div>
+        </div>
+        
+        <!-- REGISTRATION FORM -->
+        <form id="register-form" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label class="form-label">📱 የስልክ ቁጥር (Phone Number)</label>
+            <div class="input-wrap">
+              <div class="input-prefix">+251</div>
+              <input class="form-input with-prefix" type="tel" id="reg-phone" placeholder="9XXXXXXXX" maxlength="9" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🔐 የይለፍ ቃል (Password - Min 6 Digits)</label>
+            <input class="form-input" type="password" id="reg-pass" placeholder="የይለፍ ቃል ያስገቡ" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">✅ ማረጋገጫ ኮድ (Verification Code)</label>
+            <div class="verification-row">
+              <input class="form-input" type="text" id="reg-verify" placeholder="ኮድ ያስገቡ" maxlength="6" required/>
+              <button class="verify-btn" type="button" onclick="getVerificationCode()">ኮድ አግኝ</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🎁 የግብዣ ኮድ (Invitation Code)</label>
+            <div class="invite-auto">
+              <span>🔗</span>
+              <span id="inv-code-display">የተጋበዙበት ኮድ፡ <span id="inv-val" style="color:var(--gold);font-weight:bold;">EWC2024</span></span>
+            </div>
+            <input type="hidden" id="reg-invite" value="EWC2024"/>
+          </div>
+          <button class="btn-primary" type="submit">✨ ይመዝገቡ (Sign Up)</button>
+        </form>
+        
+        <!-- LOGIN FORM -->
+        <form id="login-form" onsubmit="handleLogin(event)" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">📱 የስልክ ቁጥር</label>
+            <div class="input-wrap">
+              <div class="input-prefix">+251</div>
+              <input class="form-input with-prefix" type="tel" id="login-phone" placeholder="9XXXXXXXX" maxlength="9" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🔐 የይለፍ ቃል</label>
+            <input class="form-input" type="password" id="login-pass" placeholder="የይለፍ ቃል ያስገቡ" required/>
+          </div>
+          <button class="btn-primary" type="submit">🚀 ይግቡ (Sign In)</button>
+        </form>
       </div>
     </div>
   </div>
 
-  <!-- PAGES -->
-  <!-- HOME PAGE -->
-  <div class="page active" id="page-home">
-    <div style="padding-bottom:4px;">
-      <!-- BALANCE CARD -->
+  <!-- MAIN APP WORKSPACE -->
+  <div id="main-app">
+    <!-- TOP TOOLBAR -->
+    <div class="topbar">
+      <div class="topbar-logo">⚡ EWC</div>
+      <div style="font-size:11px;color:var(--text3);font-weight:600;" id="page-title-label">EWC HOME</div>
+      <div class="topbar-icons">
+        <div class="telegram-btn" onclick="window.open('https://t.me/+lWyXw3Yii8c3MDcx','_blank')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.27 13.617l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.878.942z" fill="#0088cc"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME PAGE -->
+    <div class="page active" id="page-home">
+      <!-- HERO BALANCE CARD -->
       <div class="balance-card">
-        <div class="balance-label">Total Balance</div>
-        <div class="balance-amount" id="home-balance">0.00 ETB</div>
-        <div class="balance-sub" id="home-phone-disp">+251XXXXXXXXX</div>
+        <div class="balance-label">ጠቅላላ ቀሪ ሂሳብ (Total Balance)</div>
+        <div class="balance-amount" id="disp-balance">600.00 ETB</div>
+        <div class="balance-sub" id="disp-phone">+251 9XXXXXXXX</div>
         <div class="balance-actions">
           <div class="balance-btn deposit" onclick="openDepositModal()">
             <div class="btn-icon">💳</div>
-            <div class="btn-text">Deposit</div>
+            <div class="btn-text">ብር አስገባ (Deposit)</div>
           </div>
           <div class="balance-btn withdraw" onclick="openWithdrawModal()">
             <div class="btn-icon">💸</div>
-            <div class="btn-text">Withdraw</div>
+            <div class="btn-text">ብር አውጣ (Withdraw)</div>
           </div>
         </div>
       </div>
 
-      <!-- VIP STATUS -->
-      <div id="active-vip-banner" style="display:none;background:linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,165,0,0.1));border:1px solid var(--border);border-radius:16px;padding:14px 18px;margin-bottom:16px;display:none;">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Active VIP Plan</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--gold);" id="active-vip-name">-</div>
-          <div style="font-size:12px;color:var(--green2);">+<span id="active-vip-income">0</span> ETB/day</div>
+      <!-- ACTIVE PLAN MINI-BANNER -->
+      <div id="active-plan-banner" style="display:none;background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.3);border-radius:14px;padding:12px;margin-bottom:16px;">
+        <span style="font-size:9px;color:var(--green2);font-weight:bold;text-transform:uppercase;">የነቃ የገቢ ዕቅድ</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+          <div id="active-plan-name" style="font-size:12px;font-weight:bold;color:white;">-</div>
+          <div id="active-plan-income" style="font-size:12.5px;font-weight:bold;color:var(--green2);">+0 ETB/day</div>
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;" id="active-vip-days">60 days remaining</div>
       </div>
 
-      <!-- FLOATING CARDS -->
+      <!-- COPYS INFO GRID -->
       <div class="floating-cards">
         <div class="float-card" onclick="openDepositModal()">
-          <div class="float-card-title">🏦 Deposit To</div>
+          <div class="float-card-title">🏦 ማስገቢያ የባንክ አካውንት</div>
           <div class="bank-account-box">
             <div class="bank-name">MR Ychilal Nibret</div>
             <div class="bank-acc">1000740571579</div>
-            <button class="copy-btn" onclick="event.stopPropagation();copyText('1000740571579')">📋 Copy</button>
+            <button class="copy-btn" onclick="event.stopPropagation();copyText('1000740571579')">📋 ኮፒ አድርግ</button>
           </div>
         </div>
         <div class="float-card" onclick="openWithdrawModal()">
-          <div class="float-card-title">💸 Withdraw Info</div>
+          <div class="float-card-title">💸 ገንዘብ ማውጣት መመሪያ</div>
           <div class="withdraw-info">
-            <div><strong>Min: 1,000 ETB</strong></div>
-            <div>Time: 9AM–9PM</div>
-            <div>No Sunday withdraw</div>
-            <div style="color:var(--green2);margin-top:6px;">Bank: CBE</div>
+            <div>• <strong>ዝቅተኛ ማውጫ፡ 1,000 ETB</strong></div>
+            <div>• ሰዓት፡ ከቀኑ 3:00 - ማታ 3:00 ሰዓት</div>
+            <div>• እሁድ ዕለት ማውጣት አይቻልም!</div>
+            <div style="color:var(--green2);margin-top:6px;font-weight:bold;">ባንክ፡ ንግድ ባንክ (CBE)</div>
           </div>
         </div>
       </div>
 
-      <!-- INFO BANNER -->
+      <!-- DESCRIPTION GUIDE TEXTS -->
       <div class="info-banner">
-        <h3>ℹ️ About Electronic Wealth Class</h3>
+        <h3>ℹ️ ስለ Electronic Wealth Class መግለጫ</h3>
         <div class="info-grid">
           <div class="info-item">
-            <div class="info-key">Registration Bonus</div>
+            <div class="info-key">የምዝገባ ስጦታ (Bonus)</div>
             <div class="info-val">600 ETB 🎁</div>
           </div>
           <div class="info-item warn">
-            <div class="info-key">Min Withdraw</div>
+            <div class="info-key">ዝቅተኛ ማውጫ መጠን</div>
             <div class="info-val">1,000 ETB</div>
           </div>
           <div class="info-item">
-            <div class="info-key">Invite Commission</div>
-            <div class="info-val">30% / 3% / 1%</div>
-          </div>
-          <div class="info-item">
-            <div class="info-key">Daily Income</div>
-            <div class="info-val">5% / 1% / 1%</div>
+            <div class="info-key">የተጋባዥ ኮሚሽን ቦነስ</div>
+            <div class="info-val">L1 30% / L2 3% / L3 1%</div>
           </div>
           <div class="info-item red">
-            <div class="info-key">Sunday Withdraw</div>
-            <div class="info-val">❌ Not Allowed</div>
-          </div>
-          <div class="info-item">
-            <div class="info-key">Withdraw Hours</div>
-            <div class="info-val">9AM – 9PM</div>
+            <div class="info-key">እሁድ ገንዘብ ማውጣት</div>
+            <div class="info-val">አይቻልም ❌</div>
           </div>
         </div>
-        <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.7;">
-          ⚡ Daily income is added to your balance every 24 hours automatically.<br>
-          ⚡ Commission is only calculated after deposit.<br>
-          ⚡ Withdrawal is only allowed after deposit.
+        <p style="font-size:11px;color:var(--text3);line-height:1.6;margin-top:12px;">
+          ⚡ ያገኙትን 600 ETB የምዝገባ ስጦታ በመጠቀም ቪአይፒ ዕቅድ በመግዛት በየ 24 ሰዓቱ በቀጥታ የሚታሰብ የተረጋገጠ ዕለታዊ ገቢ ማመንጨት ይችላሉ!
+        </p>
+      </div>
+    </div>
+
+    <!-- VIP PLANS PAGE -->
+    <div class="page" id="page-vip">
+      <div class="vip-header">
+        <h2>👑 የ VIP ገቢ ደረጃዎች</h2>
+        <p style="font-size:11px;color:var(--text3);margin-top:2px;">ገቢዎን ለማሳደግ የሚፈልጉትን ዕቅድ ይግዙ</p>
+      </div>
+      <div class="vip-grid" id="vip-list-container">
+        <!-- VIP cards dynamically rendered -->
+      </div>
+    </div>
+
+    <!-- TRANSACTION HISTORIES -->
+    <div class="page" id="page-tx">
+      <div class="tx-tabs">
+        <div class="tx-tab active" onclick="switchTxTab('deposit')">💳 ማስገቢያ (Deposit)</div>
+        <div class="tx-tab" onclick="switchTxTab('withdraw')">💸 ማውጫ (Withdraw)</div>
+        <div class="tx-tab" onclick="switchTxTab('commission')">💰 ኮሚሽን (Commissions)</div>
+      </div>
+      <div class="tx-list" id="transactions-log-list">
+        <!-- Records loaded dynamically -->
+      </div>
+    </div>
+
+    <!-- PORTFOLIO MILESTONES -->
+    <div class="page" id="page-portfolio">
+      <div class="portfolio-header">
+        <div class="portfolio-total">
+          <span style="font-size:11px;color:var(--text3);font-weight:bold;">የእርስዎ ጠቅላላ የቡድን ማስገቢያ ድምር</span>
+          <div class="total" id="team-cumulative-view">0 ETB</div>
         </div>
+        <p style="font-size:11px;color:var(--text3);margin-top:6px;">የተባባሪዎችዎ ማስገቢያ መጠን ሲጨምር የሚለቀቁ ታላላቅ ሽልማቶች</p>
       </div>
-    </div>
-  </div>
-
-  <!-- VIP PAGE -->
-  <div class="page" id="page-vip">
-    <div class="vip-header">
-      <h2>👑 VIP Plans</h2>
-      <p style="font-size:11px;color:var(--text3);margin-top:4px;">Choose your investment level</p>
-    </div>
-    <div class="vip-grid" id="vip-grid"></div>
-  </div>
-
-  <!-- TRANSACTION PAGE -->
-  <div class="page" id="page-tx">
-    <div class="tx-tabs">
-      <div class="tx-tab active" onclick="switchTxTab('deposit')">💳 Deposit</div>
-      <div class="tx-tab" onclick="switchTxTab('withdraw')">💸 Withdraw</div>
-      <div class="tx-tab" onclick="switchTxTab('commission')">💰 Commission</div>
-    </div>
-    <div class="tx-list" id="tx-list"></div>
-  </div>
-
-  <!-- PORTFOLIO PAGE -->
-  <div class="page" id="page-portfolio">
-    <div class="portfolio-header">
-      <div class="portfolio-total">
-        <h3>👥 My Team Deposits</h3>
-        <div class="total" id="portfolio-total">0 ETB</div>
-      </div>
-      <div style="font-size:11px;color:var(--text3);">Collect team deposits to unlock bonuses</div>
-    </div>
-    <div class="sec-title">🏆 Portfolio Levels</div>
-    <div class="portfolio-levels" id="portfolio-levels"></div>
-  </div>
-
-  <!-- MY PAGE -->
-  <div class="page" id="page-my">
-    <div class="my-profile">
-      <div class="my-avatar">👤</div>
-      <div class="my-phone" id="my-phone-disp">+251XXXXXXXXX</div>
-      <div class="my-id">ID: <span id="my-uid">-</span></div>
-      <div class="my-badge" id="my-vip-badge">No VIP</div>
-    </div>
-
-    <!-- BANK INFO -->
-    <div class="my-section">
-      <h3>🏦 Bank Information</h3>
-      <div class="my-row">
-        <label>Full Name</label>
-        <input class="form-input" type="text" id="my-name" placeholder="Your full name"/>
-      </div>
-      <div class="my-row">
-        <label>Bank</label>
-        <input class="form-input" type="text" id="my-bank" value="Commercial Bank of Ethiopia (CBE)" readonly style="color:var(--text3);"/>
-      </div>
-      <div class="my-row">
-        <label>Account #</label>
-        <input class="form-input" type="text" id="my-acc" placeholder="CBE account number"/>
-      </div>
-      <button class="btn-primary" style="margin-top:12px;" onclick="saveBankInfo()">💾 Save Bank Info</button>
-    </div>
-
-    <!-- INVITE LINK -->
-    <div class="my-section">
-      <h3>🔗 Invitation Link</h3>
-      <div class="invite-link-box">
-        <div class="link-text" id="my-invite-link">https://ewc.app/ref/XXXXXX</div>
-        <button class="copy-btn" onclick="copyInviteLink()">📋 Copy</button>
-      </div>
-      <div style="margin-top:12px;font-size:11px;color:var(--text3);">
-        Share this link to invite friends and earn commissions!<br>
-        <span style="color:var(--gold);">Level 1: 30% | Level 2: 3% | Level 3: 1%</span>
+      <div class="portfolio-levels" id="portfolio-levels-container">
+        <!-- Milestone targets loaded dynamically -->
       </div>
     </div>
 
-    <!-- CHANGE PASSWORD -->
-    <div class="pwd-section">
-      <h3>🔐 Change Password</h3>
-      <div class="form-group">
-        <input class="form-input" type="password" id="old-pass" placeholder="Current password" style="margin-bottom:10px;"/>
-        <input class="form-input" type="password" id="new-pass" placeholder="New password (min 6 chars)" style="margin-bottom:10px;"/>
-        <input class="form-input" type="password" id="conf-pass" placeholder="Confirm new password"/>
+    <!-- PROFILE MANAGEMENT -->
+    <div class="page" id="page-my">
+      <div class="my-profile">
+        <div class="my-avatar">👤</div>
+        <div class="my-phone" id="my-profile-phone">+251 9XXXXXXXX</div>
+        <div class="my-id">ID: <span id="my-profile-id">-</span></div>
+        <div class="my-badge" id="my-profile-vip">No VIP</div>
       </div>
-      <button class="btn-submit" onclick="changePassword()" style="margin-top:4px;">Update Password</button>
-    </div>
 
-    <button class="signout-btn" onclick="doSignOut()">🚪 Sign Out</button>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="switchPage('home')" id="nav-home">
-      <div class="nav-icon">🏠</div>
-      <div class="nav-label">Home</div>
-    </div>
-    <div class="nav-item" onclick="switchPage('vip')" id="nav-vip">
-      <div class="nav-icon">👑</div>
-      <div class="nav-label">VIP</div>
-    </div>
-    <div class="nav-item" onclick="switchPage('tx')" id="nav-tx">
-      <div class="nav-icon">📊</div>
-      <div class="nav-label">Transactions</div>
-    </div>
-    <div class="nav-item" onclick="switchPage('portfolio')" id="nav-portfolio">
-      <div class="nav-icon">💼</div>
-      <div class="nav-label">Portfolio</div>
-    </div>
-    <div class="nav-item" onclick="switchPage('my')" id="nav-my">
-      <div class="nav-icon">👤</div>
-      <div class="nav-label">My</div>
-    </div>
-  </div>
-
-  <!-- HELP BUTTON -->
-  <div class="help-btn" onclick="window.open('https://t.me/nihaservice','_blank')">
-    <div class="help-avatar">
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="headGrad" cx="50%" cy="40%" r="50%">
-            <stop offset="0%" style="stop-color:#64B5F6"/>
-            <stop offset="100%" style="stop-color:#1565C0"/>
-          </radialGradient>
-          <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:0.3"/>
-            <stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0"/>
-          </radialGradient>
-        </defs>
-        <circle cx="50" cy="50" r="48" fill="url(#glowGrad)"/>
-        <circle cx="50" cy="38" r="22" fill="url(#headGrad)"/>
-        <ellipse cx="50" cy="75" rx="28" ry="18" fill="#1565C0"/>
-        <circle cx="43" cy="35" r="4" fill="#E3F2FD"/>
-        <circle cx="57" cy="35" r="4" fill="#E3F2FD"/>
-        <circle cx="44" cy="34" r="1.5" fill="#0D47A1"/>
-        <circle cx="58" cy="34" r="1.5" fill="#0D47A1"/>
-        <path d="M43 44 Q50 50 57 44" stroke="#E3F2FD" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <rect x="38" y="16" width="24" height="6" rx="3" fill="#FFD700"/>
-        <circle cx="50" cy="13" r="4" fill="#FFD700"/>
-        <line x1="30" y1="55" x2="22" y2="70" stroke="#1565C0" stroke-width="6" stroke-linecap="round"/>
-        <line x1="70" y1="55" x2="78" y2="70" stroke="#1565C0" stroke-width="6" stroke-linecap="round"/>
-        <circle cx="50" cy="50" r="3" fill="#00E5FF" opacity="0.8">
-          <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite"/>
-        </circle>
-      </svg>
-    </div>
-    <div class="help-label">AI Help</div>
-  </div>
-</div>
-
-<!-- DEPOSIT MODAL -->
-<div class="modal-overlay" id="deposit-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">💳 Deposit</div>
-
-    <!-- STEP INDICATOR -->
-    <div class="payment-steps" id="dep-steps">
-      <div class="p-step active" id="pstep-1">1. Submit</div>
-      <div class="p-step" id="pstep-2">2. Payment</div>
-      <div class="p-step" id="pstep-3">3. Completed</div>
-    </div>
-
-    <!-- STEP 1: FILL FORM -->
-    <div id="dep-step1">
-      <div class="form-group">
-        <label class="form-label">💵 Amount (ETB)</label>
-        <input class="form-input" type="number" id="dep-amount" placeholder="Enter deposit amount"/>
+      <!-- BANK SUBMISSION -->
+      <div class="my-section">
+        <h3>🏦 የባንክ ሂሳብ ቁጥር መመዝገቢያ</h3>
+        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:6px;">የአካውንት ባለቤት ሙሉ ስም</label>
+        <input class="form-input" type="text" id="bank-holder-name" placeholder="ሙሉ ስም ያስገቡ" style="margin-bottom:12px;"/>
+        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:6px;">ባንክ ስም</label>
+        <input class="form-input" type="text" value="Commercial Bank of Ethiopia (CBE - የኢትዮጵያ ንግድ ባንክ)" readonly style="margin-bottom:12px;color:var(--text3);"/>
+        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:6px;">የንግድ ባንክ (CBE) ሂሳብ ቁጥር</label>
+        <input class="form-input" type="text" id="bank-acc-num" placeholder="1000XXXXXXXXX የሂሳብ ቁጥር ያስገቡ" style="margin-bottom:14px;"/>
+        <button class="btn-primary" onclick="saveBankInformation()" style="margin-top:0;">💾 መረጃ መዝግብ (Save Bank Info)</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">🔖 FT / Transaction Reference</label>
-        <input class="form-input" type="text" id="dep-ft" placeholder="Enter FT or reference number"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">🖼️ Transaction Receipt Image</label>
-        <div class="upload-area" onclick="document.getElementById('dep-img').click()">
-          <div class="upload-icon">📸</div>
-          <div class="upload-text">Tap to upload transaction receipt</div>
-          <img id="dep-img-preview" class="upload-preview" src="" alt="Preview"/>
+
+      <!-- INVITATION PANEL -->
+      <div class="my-section">
+        <h3>🔗 የእርስዎ የግብዣ ሊንክ (Referral Link)</h3>
+        <div class="invite-link-box">
+          <div class="link-text" id="referral-link-disp">-</div>
+          <button class="copy-btn" onclick="copyReferralLink()">📋 ኮፒ</button>
         </div>
-        <input type="file" id="dep-img" accept="image/*" style="display:none;" onchange="previewImage(this,'dep-img-preview')"/>
+        <p style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5;">
+          ሊንኩን ለጓደኞችዎ በመላክ ወደ EWC ሲጋብዟቸው እና ማስገቢያ ሲያደርጉ በቀጥታ የሚታሰብ <span style="color:var(--gold);font-weight:bold;">30% ደረጃ 1 ኮሚሽን</span> ያገኛሉ!
+        </p>
       </div>
-      <div style="background:var(--dark3);border-radius:12px;padding:14px;margin-bottom:16px;">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Send payment to this account:</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-size:12px;color:var(--gold);font-weight:700;">MR Ychilal Nibret</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:15px;color:var(--text);font-weight:700;">1000740571579</div>
-            <div style="font-size:10px;color:var(--text3);">Commercial Bank of Ethiopia</div>
+
+      <button onclick="handleSignOut()" style="width:100%;background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.3);color:var(--red);padding:12px;border-radius:12px;font-size:13px;font-weight:bold;cursor:pointer;">ውጣ (Sign Out Account)</button>
+    </div>
+
+    <!-- BOTTOM APP ACTIONS NAVIGATION -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="navigateTo('home')" id="nav-btn-home">
+        <div class="nav-icon">🏠</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item" onclick="navigateTo('vip')" id="nav-btn-vip">
+        <div class="nav-icon">👑</div>
+        <div class="nav-label">VIP</div>
+      </div>
+      <div class="nav-item" onclick="navigateTo('tx')" id="nav-btn-tx">
+        <div class="nav-icon">📊</div>
+        <div class="nav-label">Records</div>
+      </div>
+      <div class="nav-item" onclick="navigateTo('portfolio')" id="nav-btn-portfolio">
+        <div class="nav-icon">💼</div>
+        <div class="nav-label">Team</div>
+      </div>
+      <div class="nav-item" onclick="navigateTo('my')" id="nav-btn-my">
+        <div class="nav-icon">👤</div>
+        <div class="nav-label">My</div>
+      </div>
+    </div>
+
+    <!-- TELEGRAM AI SUPPORT FLOATING ICON -->
+    <div class="telegram-float" onclick="window.open('https://t.me/nihaservice','_blank')">
+      <div class="tg-avatar">
+        <svg viewBox="0 0 100 100" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="48" fill="#1E88E5"/>
+          <path d="M75 30L25 50L45 58L75 30Z" fill="white"/>
+          <path d="M45 58L55 80L75 30L45 58Z" fill="#E3F2FD"/>
+          <path d="M45 58L52 65L55 80" fill="#90CAF9"/>
+        </svg>
+      </div>
+      <div class="tg-label">AI Help</div>
+    </div>
+  </div>
+
+  <!-- DEPOSIT DIALOG MODAL -->
+  <div class="modal-overlay" id="deposit-modal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">💳 ብር ማስገቢያ (Deposit Wallet)</div>
+      
+      <!-- STEPS INDICATOR -->
+      <div class="payment-steps">
+        <div class="p-step active" id="dep-pstep1">1. መረጃ መሙላት</div>
+        <div class="p-step" id="dep-pstep2">2. ክፍያ ማስተላለፍ</div>
+        <div class="p-step" id="dep-pstep3">3. ተጠናቋል</div>
+      </div>
+
+      <!-- STEP 1 -> ENTER DETAILS -->
+      <div id="dep-step-1">
+        <div class="form-group">
+          <label class="form-label">💵 የማስገቢያ መጠን (ETB Amount)</label>
+          <input class="form-input" type="number" id="input-dep-amount" value="1500" placeholder="የብር መጠን ያስገቡ"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">🔖 የሂሳብ ማስተላለፊያ FT ቁጥር (CBE FT Reference)</label>
+          <input class="form-input" type="text" id="input-dep-ft" placeholder="የማስተላለፊያ FT ቁጥር ያስገቡ eg. FT26017260"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">📸 የማስረጃ ደረሰኝ ፎቶ (screenshot - ማስገባት ይችላሉ)</label>
+          <div style="border: 2px dashed var(--border); padding: 14px; text-align: center; border-radius: 12px; background:var(--dark3); color: var(--text3); font-size:11px; cursor:pointer;" onclick="document.getElementById('input-dep-file').click()">
+            <span style="font-size:20px; display:block; margin-bottom: 4px;">📸</span>
+            የትራንዛክሽን ማረጋገጫ ደረሰኝ እዚህ ይጫኑ
+            <img id="receipt-preview" style="display:none; max-height:80px; margin: 8px auto 0; border-radius:6px;"/>
           </div>
-          <button class="copy-btn" onclick="copyText('1000740571579')">📋 Copy</button>
+          <input type="file" id="input-dep-file" accept="image/*" style="display:none;" onchange="previewReceiptImage(event)"/>
         </div>
-      </div>
-      <button class="btn-submit" onclick="submitDepositStep1()">Submit & Proceed to Payment →</button>
-      <button onclick="closeModal('deposit-modal')" style="width:100%;background:none;border:none;color:var(--text3);padding:12px;cursor:pointer;margin-top:8px;font-family:'Poppins',sans-serif;">Cancel</button>
-    </div>
 
-    <!-- STEP 2: PAYMENT GATEWAY -->
-    <div id="dep-step2" style="display:none;">
-      <div class="bank-transfer-box">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Transfer Amount</div>
-        <div class="transfer-amount" id="dep-transfer-amount">Br 0.00</div>
-        <div class="transfer-note">Use this account for this transaction only</div>
-        <div class="transfer-timer">⏱ Account expires in: <span id="dep-timer">14:00</span></div>
-        <div class="transfer-account">
-          <div class="ta-row"><span class="ta-label">Name:</span><span class="ta-val">MR Ychilal Nibret</span></div>
-          <div class="ta-row"><span class="ta-label">Bank:</span><span class="ta-val">Commercial Bank of Ethiopia</span></div>
-          <div class="ta-row"><span class="ta-label">Account:</span><span class="ta-val">1000740571579 <button class="copy-btn" style="font-size:9px;padding:3px 8px;" onclick="copyText('1000740571579')">Copy</button></span></div>
-          <div class="ta-row"><span class="ta-label">Order Ref:</span><span class="ta-val" id="dep-order-ref" style="color:var(--gold);">-</span></div>
-        </div>
-      </div>
-      <div class="payment-tips">
-        <h4>⚠️ Payment Guide</h4>
-        <ul style="list-style:none;padding:0;">
-          <li>1. <span class="highlight">Please complete payment within the specified time!</span> Otherwise your account will not be credited!</li>
-          <li>2. <span class="highlight">Fill in the Order Code when transferring</span>, Otherwise it will not be automatically credited!</li>
-          <li>3. Do not transfer funds to accounts twice. Do not save these accounts, <span class="highlight">or you will lose your money!</span></li>
-          <li>4. After completing payment, click the "I have paid" button below.</li>
-        </ul>
-      </div>
-      <button class="btn-submit" onclick="confirmPayment()">✅ I Have Made This Bank Transfer</button>
-    </div>
-
-    <!-- STEP 3: WAITING -->
-    <div id="dep-step3" style="display:none;">
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:60px;margin-bottom:16px;animation:pulse 2s infinite;">⏳</div>
-        <h3 style="color:var(--gold);font-size:18px;margin-bottom:12px;">Payment Submitted!</h3>
-        <div class="status-waiting">
-          <div class="status-dot"></div>
-          <div class="status-text">Waiting for confirmation...</div>
-        </div>
-        <p style="font-size:12px;color:var(--text3);line-height:1.7;">Your deposit is being reviewed by our team. Once approved, the amount will be added to your balance automatically.</p>
-        <div style="margin-top:16px;background:var(--dark3);border-radius:12px;padding:14px;">
-          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;">
-            <span style="color:var(--text3);">Amount:</span>
-            <span style="color:var(--gold);font-weight:700;" id="dep-confirm-amount">-</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:12px;">
-            <span style="color:var(--text3);">FT Ref:</span>
-            <span style="color:var(--text2);" id="dep-confirm-ft">-</span>
+        <!-- TARGET DISP -->
+        <div style="background:#1565C0/10; border:1.5px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 12px; margin-bottom: 20px;">
+          <div style="font-size:11px; color:var(--text2); margin-bottom:6px;">ለማስገባት ክፍያውን ወደዚህ አካውንት ያስተላልፉ፡</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:11px; color:var(--gold); font-weight:bold;">MR Ychilal Nibret</div>
+              <div style="font-family:'Orbitron', sans-serif; font-size:14px; font-weight:bold; color:white;">1000740571579</div>
+              <div style="font-size:9.5px; color:var(--text3);">የኢትዮጵያ ንግድ ባንክ (CBE)</div>
+            </div>
+            <button class="copy-btn" onclick="copyText('1000740571579')">📋 ኮፒ</button>
           </div>
         </div>
+
+        <button class="btn-primary" onclick="proceedToPaymentDetailsStep()">አስገባና ቀጣዩን ደረጃ እይ →</button>
+        <button onclick="closeModal('deposit-modal')" style="width:100%; background:none; border:none; color:var(--text3); padding:10px; cursor:pointer; font-size:12px; font-weight:bold; margin-top:8px;">ይቅር (Cancel)</button>
       </div>
-      <button class="btn-submit" onclick="closeModal('deposit-modal')">Close</button>
+
+      <!-- STEP 2 -> DETAILS AND TARGET BANNER -->
+      <div id="dep-step-2" style="display:none;">
+        <div class="bank-transfer-box">
+          <span style="font-size:11px; color:var(--text3);">የTarget ማስገቢያ መጠን</span>
+          <div class="transfer-amount" id="lbl-dep-target-amt">Br 1,500.00</div>
+          <p style="font-size:10px; color:var(--text3); margin-top:4px;">በተሰጠው የጊዜ ገደብ ውስጥ ክፍያውን ያጠናቁ!</p>
+          <div class="transfer-timer">⏱ አካውንቱ የሚያበቃበት ጊዜ፡ <span id="lbl-dep-timer">14:00</span></div>
+          
+          <div class="transfer-account">
+            <div class="ta-row"><span class="ta-label">ስም፡</span><span class="ta-val">MR Ychilal Nibret</span></div>
+            <div class="ta-row"><span class="ta-label">ባንክ፡</span><span class="ta-val">የኢትዮጵያ ንግድ ባንክ</span></div>
+            <div class="ta-row">
+              <span class="ta-label">የሂሳብ ቁጥር፡</span>
+              <span class="ta-val" style="font-family:'Orbitron',sans-serif; color:white;">
+                1000740571579 
+                <span onclick="copyText('1000740571579')" style="color:var(--gold); text-decoration:underline; font-size:9.5px; cursor:pointer; margin-left:6px;">Copy</span>
+              </span>
+            </div>
+            <div class="ta-row"><span class="ta-label">የማጣቀሻ ቁጥር፡</span><span class="ta-val" style="color:var(--gold); font-family:monospace;" id="lbl-dep-order-ref">EWC928103</span></div>
+          </div>
+        </div>
+
+        <div class="payment-tips">
+          <h4>⚠️ ወሳኝ መመሪያዎች</h4>
+          <ul style="list-style:decimal; padding-left:16px;">
+            <li>የንግድ ባንክ ያስተላለፉበትን የ <span class="highlight">FT የሪፈረንስ ቁጥር</span> በትክክል መሙላትዎን ያረጋግጡ።</li>
+            <li>ባንክ ክፍያውን እንዳጠናቀቁ ከታች ያለውን <span class="highlight">የአረንጓዴ በተን "ክፍያውን በባንክ ፈጽሜያለሁ"</span> የሚለውን ይጫኑ።</li>
+          </ul>
+        </div>
+
+        <button class="btn-primary" onclick="confirmPaymentAndSubmit()">✅ ክፍያውን በባንክ ፈጽሜያለሁ (I have Paid)</button>
+      </div>
+
+      <!-- STEP 3 -> SUCCESS VERIFICATION WAIT -->
+      <div id="dep-step-3" style="display:none; text-align:center; padding: 14px 0;">
+        <span style="font-size:45px; display:block; margin-bottom:12.5px; animation: bounce 1.5s infinite;">⏳</span>
+        <h3 style="color:var(--gold); font-size:16px; margin-bottom:8px;">ክፍያዎ በተሳካ ሁኔታ ተመዝግቧል!</h3>
+        <p style="font-size:11.5px; color:var(--text3); line-height:1.6; margin-bottom:20px;">
+          የትራንዛክሽን ማስገቢያ ማረጋገጫ FT ቁጥር ከተቀባይ ባንክ አካውንት መዛመጃዎች ጋር በጥንቃቄ እየተመሳከረ ነው። በጥቂት ሰዓታት ውስጥ በተሳካ ሁኔታ ጸድቆ ሂሳብዎ ላይ ይሞላል!
+        </p>
+        <button class="btn-primary" onclick="closeModal('deposit-modal')" style="margin-top:20px;">ዝጋ (Close Window)</button>
+      </div>
+
     </div>
   </div>
-</div>
 
-<!-- WITHDRAW MODAL -->
-<div class="modal-overlay" id="withdraw-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">💸 Withdraw</div>
-    <div id="withdraw-form-area">
-      <div id="withdraw-bank-display" class="w-bank-info" style="display:none;">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Your Bank Account</div>
-        <div class="wb-row"><span class="wb-label">Name:</span><span class="wb-val" id="w-name-disp">-</span></div>
-        <div class="wb-row"><span class="wb-label">Bank:</span><span class="wb-val bank">CBE</span></div>
-        <div class="wb-row"><span class="wb-label">Account:</span><span class="wb-val" id="w-acc-disp">-</span></div>
+  <!-- WITHDRAW CASH DIALOG MODAL -->
+  <div class="modal-overlay" id="withdraw-modal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">💸 የገንዘብ ማውጫ (Withdraw Cash)</div>
+      
+      <!-- CHECK SAVE ACCOUNT STATUS -->
+      <div id="with-no-bank-warn" style="display:none; background:rgba(255,82,82,0.1); border:1.5px solid rgba(255,82,82,0.3); border-radius:12px; padding:12px; text-align:center; margin-bottom:14px;">
+        <p style="font-size:11.5px; color:var(--red);">
+          ⚠️ ገንዘብ ማውጣት ከመቻልዎ በፊት እባክዎ መጀመሪያ የባንክ ሂሳብ ቁጥርዎን በ "My" ገጽ ላይ መዝግበው ያስቀምጡ!
+        </p>
       </div>
-      <div id="withdraw-no-bank" style="background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.3);border-radius:12px;padding:14px;margin-bottom:14px;display:none;">
-        <p style="font-size:12px;color:var(--red);">⚠️ Please add your bank information in "My" section first before withdrawing.</p>
-      </div>
-      <div class="min-note">ℹ️ Minimum withdrawal: <span>1,000 ETB</span> | Hours: 9AM–9PM | No Sunday</div>
-      <div class="form-group">
-        <label class="form-label">💵 Amount (ETB)</label>
-        <input class="form-input" type="number" id="with-amount" placeholder="Minimum 1,000 ETB" min="1000"/>
-      </div>
-      <button class="btn-submit btn-yellow" onclick="submitWithdraw()">💸 Submit Withdrawal</button>
-      <div id="withdraw-waiting" style="display:none;margin-top:14px;">
-        <div class="status-waiting">
-          <div class="status-dot"></div>
-          <div class="status-text">Withdrawal request submitted. Waiting...</div>
+
+      <div id="with-bank-details-disp" style="background:var(--dark3); border-radius:12px; padding:12px; font-size:11.5px; margin-bottom:14px; display:none;">
+        <div style="font-size:10px; color:var(--text3); font-weight:bold; margin-bottom:6px; text-transform:uppercase;">ተቀባይ የባንክ አካውንት</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+          <span style="color:var(--text3);">የአካውንት ስም፡</span>
+          <strong id="lbl-with-bank-name" style="color:white;">-</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+          <span style="color:var(--text3);">ባንክ፡</span>
+          <strong style="color:var(--green2);">የኢትዮጵያ ንግድ ባንክ (CBE)</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--text3);">የሂሳብ ቁጥር፡</span>
+          <strong id="lbl-with-bank-acc" style="color:white; font-family:monospace;">-</strong>
         </div>
       </div>
-      <button onclick="closeModal('withdraw-modal')" style="width:100%;background:none;border:none;color:var(--text3);padding:12px;cursor:pointer;margin-top:8px;font-family:'Poppins',sans-serif;">Cancel</button>
+
+      <!-- INFO BANNER LIMITS -->
+      <div style="font-size:10.5px; color:var(--text3); line-height:1.5; margin-bottom:14px;">
+        🔹 ዝቅተኛ ማውጫ መጠን፡ <strong style="color:var(--gold);">1,000 ETB</strong> <br>
+        🔹 ሰዓት፡ ከቀኑ 3:00 ሰዓት እስከ ማታ 3:00 ሰዓት (9AM-9PM) <br>
+        🔹 እሁድ ቀን ገንዘብ ማውጣት አይቻልም! <br>
+        🔹 <strong style="color:var(--red);">የአገልግሎት ክፍያ (Fee): 15%</strong>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">💵 የማውጫ ብር መጠን (Amount to Withdraw)</label>
+        <input class="form-input" type="number" id="input-with-amount" min="1000" placeholder="በትንሹ 1000 ETB ያስገቡ"/>
+        <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:10.5px; color:var(--text3);">
+          <span>ይገኛል ቀሪ ሂሳብ፡ <strong id="lbl-with-available-bal" style="color:white;">0.00 ETB</strong></span>
+          <span onclick="setWithdrawAmountAll()" style="color:var(--gold); text-decoration:underline; font-weight:bold; cursor:pointer;">ሁሉንም አውጣ</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="submitWithdrawalRequest()">📤 የማውጫ ጥያቄ ጨርስ</button>
+      <button onclick="closeModal('withdraw-modal')" style="width:100%; background:none; border:none; color:var(--text3); padding:10px; cursor:pointer; font-size:12px; font-weight:bold; margin-top:8px;">ይቅር</button>
     </div>
   </div>
-</div>
 
-<!-- BUY VIP MODAL -->
-<div class="modal-overlay" id="vip-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="vip-modal-title">Buy VIP</div>
-    <div id="vip-modal-content"></div>
-  </div>
-</div>
+  <script>
+    // ===== VIP PLANS CONFIGURATION =====
+    const VIP_PLANS = [
+      { id: 'vip1', name: 'VIP 1', price: 500, daily: 100, days: 60, phoneIcon: '📱', color: '#42A5F5', model: 'Samsung A14' },
+      { id: 'vip2', name: 'VIP 2', price: 1500, daily: 300, days: 60, phoneIcon: '📲', color: '#66BB6A', model: 'iPhone 13' },
+      { id: 'vip3', name: 'VIP 3', price: 3000, daily: 600, days: 60, phoneIcon: '🤳', color: '#FFD54F', model: 'Samsung S22' },
+      { id: 'vip4', name: 'VIP 4', price: 6000, daily: 1200, days: 60, phoneIcon: '📳', color: '#FF7043', model: 'iPhone 14 Pro' },
+      { id: 'vip5', name: 'VIP 5', price: 18000, daily: 3600, days: 60, phoneIcon: '📴', color: '#AB47BC', model: 'Samsung S23 Ultra' },
+      { id: 'vip6', name: 'VIP 6', price: 36000, daily: 7200, days: 60, phoneIcon: '☎️', color: '#26C6DA', model: 'iPhone 15 Pro' },
+      { id: 'vip7', name: 'VIP 7', price: 72000, daily: 14400, days: 60, phoneIcon: '📡', color: '#FFD700', model: 'Samsung Z Fold 5' },
+    ];
 
-<!-- FIREBASE SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, set, get, push, update, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    // ===== PORTFOLIO LEVEL TARGET MILESTONES =====
+    const PORTFOLIO_LEVELS = [
+      { level: 1, target: 20000, reward: 2000 },
+      { level: 2, target: 40000, reward: 4000 },
+      { level: 3, target: 80000, reward: 8000 },
+      { level: 4, target: 160000, reward: 16000 },
+      { level: 5, target: 320000, reward: 32000 },
+      { level: 6, target: 640000, reward: 64000 },
+      { level: 7, target: 1280000, reward: 128000 },
+    ];
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDbAnGrbLF9v1K7UF6qCKnpDd_SE_ogySg",
-  authDomain: "electronic-wealth-class.firebaseapp.com",
-  databaseURL: "https://electronic-wealth-class-default-rtdb.firebaseio.com",
-  projectId: "electronic-wealth-class",
-  storageBucket: "electronic-wealth-class.firebasestorage.app",
-  messagingSenderId: "965170674536",
-  appId: "1:965170674536:web:b5a97b7dde05d1e574f4dd",
-  measurementId: "G-EED1CZN1P1"
-};
+    // ===== DATABASE STORAGE KEYS =====
+    const DB_USERS_KEY = 'ewc_single_users_db_v2';
+    const DB_TXS_KEY = 'ewc_single_txs_db_v2';
+    const DB_SESSION_KEY = 'ewc_single_sess_db_v2';
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-const storage = getStorage(app);
-
-// ===== GLOBAL STATE =====
-window.currentUser = null;
-window.userData = {};
-window.currentTxTab = 'deposit';
-let depTimerInterval = null;
-let verifyCode = null;
-
-// ===== VIP PLANS =====
-const VIP_PLANS = [
-  {id:'vip1', name:'VIP 1', price:500, daily:100, days:60, phone:'📱', color:'#42A5F5', model:'Samsung A14'},
-  {id:'vip2', name:'VIP 2', price:1500, daily:300, days:60, phone:'📲', color:'#66BB6A', model:'iPhone 13'},
-  {id:'vip3', name:'VIP 3', price:3000, daily:600, days:60, phone:'🤳', color:'#FFD54F', model:'Samsung S22'},
-  {id:'vip4', name:'VIP 4', price:6000, daily:1200, days:60, phone:'📳', color:'#FF7043', model:'iPhone 14 Pro'},
-  {id:'vip5', name:'VIP 5', price:18000, daily:3600, days:60, phone:'📴', color:'#AB47BC', model:'Samsung S23 Ultra'},
-  {id:'vip6', name:'VIP 6', price:36000, daily:7200, days:60, phone:'☎️', color:'#26C6DA', model:'iPhone 15 Pro'},
-  {id:'vip7', name:'VIP 7', price:72000, daily:14400, days:60, phone:'📡', color:'#FFD700', model:'Samsung Z Fold 5'},
-];
-
-// ===== PORTFOLIO LEVELS =====
-const PORTFOLIO_LEVELS = [
-  {level:1, target:20000, reward:2000},
-  {level:2, target:40000, reward:4000},
-  {level:3, target:80000, reward:8000},
-  {level:4, target:160000, reward:16000},
-  {level:5, target:320000, reward:32000},
-  {level:6, target:640000, reward:64000},
-  {level:7, target:1280000, reward:128000},
-];
-
-// ===== AUTH STATE =====
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    window.currentUser = user;
-    await loadUserData(user.uid);
-    showApp();
-  } else {
-    showAuthPage();
-  }
-  document.getElementById('loading-screen').style.display = 'none';
-});
-
-// ===== LOAD USER DATA =====
-async function loadUserData(uid) {
-  const snap = await get(ref(db, `users/${uid}`));
-  if (snap.exists()) {
-    window.userData = snap.val();
-    updateUI();
-    startDailyIncomeCheck(uid);
-    listenTransactions(uid);
-  }
-}
-
-// ===== UPDATE UI =====
-function updateUI() {
-  const d = window.userData;
-  const balance = (d.balance || 0).toLocaleString('en-ET', {minimumFractionDigits:2, maximumFractionDigits:2});
-  document.getElementById('home-balance').textContent = balance + ' ETB';
-  document.getElementById('home-phone-disp').textContent = '+251' + (d.phone || '');
-  document.getElementById('my-phone-disp').textContent = '+251' + (d.phone || '');
-  document.getElementById('my-uid').textContent = (d.uid || '').substring(0,12) + '...';
-  document.getElementById('my-name').value = d.bankName || '';
-  document.getElementById('my-acc').value = d.bankAcc || '';
-  if (d.bankName) {
-    document.getElementById('my-name').readOnly = true;
-    document.getElementById('my-acc').readOnly = true;
-  }
-  const invLink = `https://ewc.app/ref/${window.currentUser.uid.substring(0,8)}`;
-  document.getElementById('my-invite-link').textContent = invLink;
-  const vipBadge = document.getElementById('my-vip-badge');
-  if (d.activeVip) {
-    vipBadge.textContent = d.activeVip.toUpperCase() + ' Active';
-    vipBadge.style.background = 'linear-gradient(135deg,var(--gold),var(--gold2))';
-    const vipData = VIP_PLANS.find(v=>v.id===d.activeVip);
-    if (vipData) {
-      const banner = document.getElementById('active-vip-banner');
-      banner.style.display = 'block';
-      document.getElementById('active-vip-name').textContent = vipData.name;
-      document.getElementById('active-vip-income').textContent = vipData.daily.toLocaleString();
-    }
-  } else {
-    vipBadge.textContent = 'No VIP';
-    vipBadge.style.background = 'var(--dark3)';
-  }
-  renderVipGrid();
-  renderPortfolio();
-}
-
-// ===== SHOW AUTH / APP =====
-function showAuthPage() {
-  document.getElementById('auth-page').style.display = 'block';
-  document.getElementById('main-app').style.display = 'none';
-}
-function showApp() {
-  document.getElementById('auth-page').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
-}
-window.showAuthPage = showAuthPage;
-window.showApp = showApp;
-
-// ===== REGISTER =====
-window.doRegister = async function() {
-  const phone = document.getElementById('reg-phone').value.trim();
-  const pass = document.getElementById('reg-pass').value;
-  const code = document.getElementById('reg-verify').value.trim();
-  const invite = document.getElementById('reg-invite').value;
-  if (!phone || phone.length < 9) return showNotif('Enter valid phone number', 'error');
-  if (pass.length < 6) return showNotif('Password must be at least 6 characters', 'error');
-  if (!code) return showNotif('Enter verification code', 'error');
-  if (code !== String(verifyCode)) return showNotif('Invalid verification code', 'error');
-  const email = `+251${phone}@ewc.app`;
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    const uid = cred.user.uid;
-    const userData = {
-      uid, phone, email,
-      balance: 600,
-      totalDeposit: 0,
-      inviteCode: uid.substring(0,8),
-      invitedBy: invite || null,
-      registeredAt: Date.now(),
-      bankName: '', bankAcc: '',
-      activeVip: null,
+    // ===== APPLICATION STATE CONFIGURATION =====
+    let state = {
+      currentUser: null,
+      transactions: [],
+      activeNavTab: 'home',
+      activeTxTab: 'deposit',
+      fakeCodeSent: null,
+      depositTimer: null,
+      depositTimerLimit: 14 * 60,
+      activePendingTxId: null,
     };
-    await set(ref(db, `users/${uid}`), userData);
-    // Commission to inviter
-    if (invite && invite !== 'EWC2024') {
-      await processReferralBonus(invite, uid, 0);
-    }
-    // Log registration bonus
-    await push(ref(db, `transactions/${uid}`), {
-      type: 'commission', amount: 600, desc: 'Registration Bonus 🎁', status: 'approved', ts: Date.now()
-    });
-    showNotif('Registration successful! 600 ETB bonus added! 🎉', 'success');
-  } catch(e) {
-    showNotif(e.message, 'error');
-  }
-};
 
-// ===== LOGIN =====
-window.doLogin = async function() {
-  const phone = document.getElementById('login-phone').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  if (!phone) return showNotif('Enter phone number', 'error');
-  if (!pass) return showNotif('Enter password', 'error');
-  const email = `+251${phone}@ewc.app`;
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-    showNotif('Welcome back! 🚀', 'success');
-  } catch(e) {
-    showNotif('Invalid phone or password', 'error');
-  }
-};
-
-// ===== SIGN OUT =====
-window.doSignOut = async function() {
-  await signOut(auth);
-  showNotif('Signed out successfully', 'info');
-};
-
-// ===== SWITCH AUTH TAB =====
-window.switchAuth = function(tab) {
-  document.getElementById('register-form').style.display = tab==='register'?'block':'none';
-  document.getElementById('login-form').style.display = tab==='login'?'block':'none';
-  document.querySelectorAll('.auth-tab').forEach((t,i)=>{
-    t.classList.toggle('active', (i===0&&tab==='register')||(i===1&&tab==='login'));
-  });
-};
-
-// ===== VERIFICATION CODE =====
-window.sendVerification = function() {
-  verifyCode = Math.floor(100000 + Math.random() * 900000);
-  showNotif(`Your verification code: ${verifyCode}`, 'info');
-  // Auto-fill for demo
-  document.getElementById('reg-verify').value = String(verifyCode);
-};
-
-// ===== NAVIGATE PAGES =====
-window.switchPage = function(page) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById(`page-${page}`).classList.add('active');
-  document.getElementById(`nav-${page}`).classList.add('active');
-  document.getElementById('topbar-title').textContent = {
-    home:'Electronic Wealth Class', vip:'VIP Plans',
-    tx:'Transactions', portfolio:'Portfolio', my:'My Account'
-  }[page] || '';
-};
-
-// ===== DEPOSIT MODAL =====
-window.openDepositModal = function() {
-  resetDepositSteps();
-  document.getElementById('deposit-modal').classList.add('active');
-};
-window.closeModal = function(id) {
-  document.getElementById(id).classList.remove('active');
-  if (id==='deposit-modal') { clearInterval(depTimerInterval); resetDepositSteps(); }
-};
-function resetDepositSteps() {
-  document.getElementById('dep-step1').style.display = 'block';
-  document.getElementById('dep-step2').style.display = 'none';
-  document.getElementById('dep-step3').style.display = 'none';
-  setPStep(1);
-  document.getElementById('dep-amount').value = '';
-  document.getElementById('dep-ft').value = '';
-  document.getElementById('dep-img-preview').style.display = 'none';
-}
-function setPStep(n) {
-  [1,2,3].forEach(i=>{
-    const el = document.getElementById(`pstep-${i}`);
-    el.className = 'p-step' + (i<n?' done':i===n?' active':'');
-  });
-}
-
-window.submitDepositStep1 = async function() {
-  const amount = parseFloat(document.getElementById('dep-amount').value);
-  const ft = document.getElementById('dep-ft').value.trim();
-  if (!amount || amount < 1) return showNotif('Enter valid amount', 'error');
-  if (!ft) return showNotif('Enter FT/transaction reference', 'error');
-  // Upload image
-  const fileInput = document.getElementById('dep-img');
-  let imgUrl = '';
-  if (fileInput.files[0]) {
-    try {
-      const imgRef = sRef(storage, `deposits/${window.currentUser.uid}/${Date.now()}`);
-      await uploadBytes(imgRef, fileInput.files[0]);
-      imgUrl = await getDownloadURL(imgRef);
-    } catch(e) { console.log('Image upload optional'); }
-  }
-  // Store pending
-  window._pendingDep = { amount, ft, imgUrl };
-  const orderRef = 'EWC' + Date.now().toString().slice(-8);
-  document.getElementById('dep-transfer-amount').textContent = `Br ${amount.toFixed(2)}`;
-  document.getElementById('dep-order-ref').textContent = orderRef;
-  window._pendingDep.orderRef = orderRef;
-  document.getElementById('dep-step1').style.display = 'none';
-  document.getElementById('dep-step2').style.display = 'block';
-  setPStep(2);
-  startDepTimer(14*60);
-  document.getElementById('tips-modal').classList.add('active');
-};
-
-function startDepTimer(secs) {
-  clearInterval(depTimerInterval);
-  let remaining = secs;
-  const el = document.getElementById('dep-timer');
-  depTimerInterval = setInterval(()=>{
-    const m = Math.floor(remaining/60), s = remaining%60;
-    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    if (--remaining < 0) { clearInterval(depTimerInterval); el.textContent = 'Expired'; }
-  }, 1000);
-}
-
-window.confirmPayment = async function() {
-  clearInterval(depTimerInterval);
-  const dep = window._pendingDep;
-  if (!dep) return;
-  const uid = window.currentUser.uid;
-  await push(ref(db, `transactions/${uid}`), {
-    type:'deposit', amount: dep.amount, ft: dep.ft,
-    imgUrl: dep.imgUrl || '', orderRef: dep.orderRef,
-    status:'waiting', ts: Date.now()
-  });
-  document.getElementById('dep-step2').style.display = 'none';
-  document.getElementById('dep-step3').style.display = 'block';
-  setPStep(3);
-  document.getElementById('dep-confirm-amount').textContent = dep.amount.toLocaleString() + ' ETB';
-  document.getElementById('dep-confirm-ft').textContent = dep.ft;
-  showNotif('Deposit submitted! Waiting for approval.', 'info');
-};
-
-window.closeTipsModal = function() {
-  document.getElementById('tips-modal').classList.remove('active');
-};
-
-// ===== WITHDRAW MODAL =====
-window.openWithdrawModal = function() {
-  const d = window.userData;
-  const hasBankInfo = d.bankName && d.bankAcc;
-  const hasDeposit = (d.totalDeposit || 0) > 0;
-  document.getElementById('withdraw-no-bank').style.display = hasBankInfo ? 'none' : 'block';
-  document.getElementById('withdraw-bank-display').style.display = hasBankInfo ? 'block' : 'none';
-  if (hasBankInfo) {
-    document.getElementById('w-name-disp').textContent = d.bankName;
-    document.getElementById('w-acc-disp').textContent = d.bankAcc;
-  }
-  document.getElementById('withdraw-waiting').style.display = 'none';
-  document.getElementById('with-amount').value = '';
-  if (!hasDeposit) {
-    showNotif('You need to make a deposit first before withdrawing', 'error');
-    return;
-  }
-  document.getElementById('withdraw-modal').classList.add('active');
-};
-
-window.submitWithdraw = async function() {
-  const d = window.userData;
-  if (!d.bankName || !d.bankAcc) return showNotif('Please add bank info in My section first', 'error');
-  const amount = parseFloat(document.getElementById('with-amount').value);
-  if (!amount || amount < 1000) return showNotif('Minimum withdrawal is 1,000 ETB', 'error');
-  // Check day / time
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const hour = now.getHours();
-  if (dayOfWeek === 0) return showNotif('Withdrawal not allowed on Sunday', 'error');
-  if (hour < 9 || hour >= 21) return showNotif('Withdrawal allowed only 9AM–9PM', 'error');
-  if ((d.balance || 0) < amount) return showNotif('Insufficient balance', 'error');
-  const uid = window.currentUser.uid;
-  await push(ref(db, `transactions/${uid}`), {
-    type:'withdraw', amount, bankName: d.bankName, bankAcc: d.bankAcc,
-    status:'waiting', ts: Date.now()
-  });
-  await update(ref(db, `users/${uid}`), { balance: (d.balance||0) - amount });
-  window.userData.balance = (d.balance||0) - amount;
-  updateUI();
-  document.getElementById('withdraw-waiting').style.display = 'block';
-  showNotif('Withdrawal request submitted! Waiting for approval.', 'info');
-};
-
-// ===== BANK INFO SAVE =====
-window.saveBankInfo = async function() {
-  const d = window.userData;
-  if (d.bankName && d.bankAcc) return showNotif('Bank info already saved and cannot be changed', 'error');
-  const name = document.getElementById('my-name').value.trim();
-  const acc = document.getElementById('my-acc').value.trim();
-  if (!name || !acc) return showNotif('Please fill all bank fields', 'error');
-  const uid = window.currentUser.uid;
-  await update(ref(db, `users/${uid}`), { bankName: name, bankAcc: acc });
-  window.userData.bankName = name;
-  window.userData.bankAcc = acc;
-  document.getElementById('my-name').readOnly = true;
-  document.getElementById('my-acc').readOnly = true;
-  showNotif('Bank information saved! ✅', 'success');
-};
-
-// ===== CHANGE PASSWORD =====
-window.changePassword = async function() {
-  const old = document.getElementById('old-pass').value;
-  const nw = document.getElementById('new-pass').value;
-  const conf = document.getElementById('conf-pass').value;
-  if (!old || !nw || !conf) return showNotif('Fill all password fields', 'error');
-  if (nw.length < 6) return showNotif('New password must be at least 6 characters', 'error');
-  if (nw !== conf) return showNotif('Passwords do not match', 'error');
-  try {
-    const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-    const cred = EmailAuthProvider.credential(window.currentUser.email, old);
-    await reauthenticateWithCredential(window.currentUser, cred);
-    await updatePassword(window.currentUser, nw);
-    showNotif('Password changed successfully! ✅', 'success');
-    document.getElementById('old-pass').value = '';
-    document.getElementById('new-pass').value = '';
-    document.getElementById('conf-pass').value = '';
-  } catch(e) { showNotif('Current password incorrect', 'error'); }
-};
-
-// ===== VIP GRID =====
-function renderVipGrid() {
-  const d = window.userData;
-  const grid = document.getElementById('vip-grid');
-  grid.innerHTML = '';
-  VIP_PLANS.forEach(v => {
-    const owned = d.activeVip === v.id;
-    const card = document.createElement('div');
-    card.className = `vip-card ${v.id}`;
-    card.innerHTML = `
-      <div class="vip-top">
-        <div class="vip-phone">${v.phone}</div>
-        <div>
-          <div class="vip-info"><h3>${v.name}</h3></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px;">${v.model}</div>
-          <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:4px;">${v.price.toLocaleString()} <span style="font-size:11px;color:var(--text3);">ETB</span></div>
-        </div>
-      </div>
-      <div class="vip-stats">
-        <div class="vip-stat">
-          <div class="vs-label">Price</div>
-          <div class="vs-val gold">${v.price.toLocaleString()}</div>
-        </div>
-        <div class="vip-stat">
-          <div class="vs-label">Daily Income</div>
-          <div class="vs-val">${v.daily.toLocaleString()} ETB</div>
-        </div>
-        <div class="vip-stat">
-          <div class="vs-label">Duration</div>
-          <div class="vs-val gold">${v.days} Days</div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:11px;color:var(--text3);">
-        <span>⏱ Time: ${v.days} days</span>
-        <span>💰 Total: ${(v.daily*v.days).toLocaleString()} ETB</span>
-      </div>
-      <button class="buy-btn ${owned?'vip-owned':''}" onclick="${owned?`showNotif('This VIP plan is already active!','info')`:`buyVip('${v.id}')`}">${owned?'✅ Active':'🛒 Buy ' + v.name}</button>
-    `;
-    grid.appendChild(card);
-  });
-}
-
-// ===== BUY VIP =====
-window.buyVip = async function(vipId) {
-  const d = window.userData;
-  const vip = VIP_PLANS.find(v=>v.id===vipId);
-  if (!vip) return;
-  if (!d.totalDeposit || d.totalDeposit < 1) return showNotif('Please make a deposit first to buy VIP', 'error');
-  if ((d.balance||0) < vip.price) return showNotif(`Insufficient balance. Need ${vip.price.toLocaleString()} ETB`, 'error');
-  const uid = window.currentUser.uid;
-  const newBalance = (d.balance||0) - vip.price;
-  const vipExpiry = Date.now() + vip.days * 24 * 3600 * 1000;
-  await update(ref(db, `users/${uid}`), {
-    balance: newBalance, activeVip: vipId,
-    vipPurchasedAt: Date.now(), vipExpiry, vipLastPaid: Date.now()
-  });
-  await push(ref(db, `transactions/${uid}`), {
-    type:'vip', amount: -vip.price, desc: `${vip.name} Purchased`, status:'approved', ts: Date.now()
-  });
-  window.userData.balance = newBalance;
-  window.userData.activeVip = vipId;
-  window.userData.vipExpiry = vipExpiry;
-  window.userData.vipLastPaid = Date.now();
-  updateUI();
-  showNotif(`🎉 ${vip.name} activated! You'll earn ${vip.daily.toLocaleString()} ETB/day`, 'success');
-};
-
-// ===== DAILY INCOME CHECK =====
-function startDailyIncomeCheck(uid) {
-  setInterval(async () => {
-    const snap = await get(ref(db, `users/${uid}`));
-    if (!snap.exists()) return;
-    const d = snap.val();
-    if (!d.activeVip || !d.vipExpiry) return;
-    if (Date.now() > d.vipExpiry) return;
-    const vip = VIP_PLANS.find(v=>v.id===d.activeVip);
-    if (!vip) return;
-    const lastPaid = d.vipLastPaid || d.vipPurchasedAt || 0;
-    const hoursSince = (Date.now() - lastPaid) / (1000 * 3600);
-    if (hoursSince >= 24) {
-      const newBalance = (d.balance||0) + vip.daily;
-      await update(ref(db, `users/${uid}`), { balance: newBalance, vipLastPaid: Date.now() });
-      await push(ref(db, `transactions/${uid}`), {
-        type:'commission', amount: vip.daily, desc:`${vip.name} Daily Income 💰`, status:'approved', ts: Date.now()
-      });
-      window.userData.balance = newBalance;
-      window.userData.vipLastPaid = Date.now();
-      updateUI();
-      showNotif(`💰 ${vip.daily.toLocaleString()} ETB daily income added!`, 'success');
-    }
-  }, 60000); // check every minute
-}
-
-// ===== TRANSACTIONS =====
-function listenTransactions(uid) {
-  onValue(ref(db, `transactions/${uid}`), (snap) => {
-    window.userData.transactions = snap.val() ? Object.values(snap.val()).reverse() : [];
-    renderTxList();
-  });
-}
-
-function renderTxList() {
-  const tab = window.currentTxTab;
-  const txs = (window.userData.transactions || []).filter(t => {
-    if (tab==='deposit') return t.type==='deposit';
-    if (tab==='withdraw') return t.type==='withdraw';
-    if (tab==='commission') return t.type==='commission' || t.type==='vip';
-    return true;
-  });
-  const list = document.getElementById('tx-list');
-  if (!txs.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No ${tab} records yet</p></div>`;
-    return;
-  }
-  list.innerHTML = txs.map(tx => {
-    const isPos = tx.amount > 0;
-    const iconMap = { deposit:'💳', withdraw:'💸', commission:'💰', vip:'👑' };
-    const icon = iconMap[tx.type] || '📋';
-    const classMap = { deposit:'dep', withdraw:'with', commission:'com', vip:'vip-tx' };
-    const cl = classMap[tx.type] || 'dep';
-    const ts = tx.ts ? new Date(tx.ts).toLocaleString() : '-';
-    const detail = tx.ft ? `FT: ${tx.ft}` : (tx.desc || '');
-    return `<div class="tx-item">
-      <div class="tx-icon ${cl}">${icon}</div>
-      <div class="tx-body">
-        <div class="tx-type">${tx.type==='deposit'?'Deposit':tx.type==='withdraw'?'Withdrawal':tx.desc||'Commission'}</div>
-        <div class="tx-date">${ts}</div>
-        ${detail ? `<div class="tx-detail">${detail}</div>` : ''}
-        <span class="tx-status ${tx.status==='approved'?'success':'wait'}">${tx.status==='approved'?'✅ Approved':'⏳ Waiting'}</span>
-      </div>
-      <div class="tx-amount ${isPos?'pos':'neg'}">${isPos?'+':''}${(tx.amount||0).toLocaleString()} ETB</div>
-    </div>`;
-  }).join('');
-}
-
-window.switchTxTab = function(tab) {
-  window.currentTxTab = tab;
-  document.querySelectorAll('.tx-tab').forEach((t,i)=>{
-    const tabs = ['deposit','withdraw','commission'];
-    t.classList.toggle('active', tabs[i]===tab);
-  });
-  renderTxList();
-};
-
-// ===== PORTFOLIO =====
-function renderPortfolio() {
-  const d = window.userData;
-  const teamDeposit = d.teamDeposit || 0;
-  document.getElementById('portfolio-total').textContent = teamDeposit.toLocaleString() + ' ETB';
-  const container = document.getElementById('portfolio-levels');
-  container.innerHTML = PORTFOLIO_LEVELS.map(lv => {
-    const progress = Math.min(100, (teamDeposit / lv.target) * 100);
-    const canClaim = teamDeposit >= lv.target && !(d[`claimed_lv${lv.level}`]);
-    const claimed = d[`claimed_lv${lv.level}`];
-    return `<div class="level-item">
-      <div class="level-num">L${lv.level}</div>
-      <div class="level-body">
-        <div class="lv-title">Level ${lv.level} Team</div>
-        <div class="lv-target">Target: ${lv.target.toLocaleString()} ETB deposits</div>
-        <div class="level-progress">
-          <div class="prog-bar"><div class="prog-fill" style="width:${progress}%"></div></div>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">${teamDeposit.toLocaleString()} / ${lv.target.toLocaleString()} ETB (${progress.toFixed(0)}%)</div>
-        </div>
-      </div>
-      <div class="level-reward">
-        <div class="reward-amount">+${lv.reward.toLocaleString()} ETB</div>
-        <button class="claim-btn" ${canClaim?'':`disabled`} onclick="claimPortfolio(${lv.level},${lv.reward})">
-          ${claimed ? '✅ Claimed' : canClaim ? '🎁 Claim' : '🔒 Lock'}
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-window.claimPortfolio = async function(level, reward) {
-  const uid = window.currentUser.uid;
-  const d = window.userData;
-  if (d[`claimed_lv${level}`]) return showNotif('Already claimed', 'info');
-  const newBalance = (d.balance||0) + reward;
-  const upd = { balance: newBalance };
-  upd[`claimed_lv${level}`] = true;
-  await update(ref(db, `users/${uid}`), upd);
-  await push(ref(db, `transactions/${uid}`), {
-    type:'commission', amount: reward, desc:`Portfolio Level ${level} Reward 🏆`, status:'approved', ts: Date.now()
-  });
-  window.userData.balance = newBalance;
-  window.userData[`claimed_lv${level}`] = true;
-  updateUI();
-  showNotif(`🎉 ${reward.toLocaleString()} ETB claimed from Level ${level}!`, 'success');
-};
-
-// ===== REFERRAL BONUS =====
-async function processReferralBonus(inviteCode, newUid, depositAmount) {
-  // Find inviter by invite code
-  const usersSnap = await get(ref(db, 'users'));
-  if (!usersSnap.exists()) return;
-  const users = usersSnap.val();
-  let level1Uid = null, level2Uid = null, level3Uid = null;
-  for (const [uid, u] of Object.entries(users)) {
-    if (u.inviteCode === inviteCode) { level1Uid = uid; break; }
-  }
-  if (level1Uid && depositAmount > 0) {
-    const l1bonus = depositAmount * 0.30;
-    const l1snap = await get(ref(db, `users/${level1Uid}`));
-    if (l1snap.exists()) {
-      const l1 = l1snap.val();
-      await update(ref(db, `users/${level1Uid}`), { balance: (l1.balance||0) + l1bonus });
-      await push(ref(db, `transactions/${level1Uid}`), {
-        type:'commission', amount: l1bonus, desc:`Level 1 Referral Commission (30%) from +251${(users[newUid]||{}).phone||''}`, status:'approved', ts: Date.now()
-      });
-      // Level 2
-      if (l1.invitedBy) {
-        for (const [uid2, u2] of Object.entries(users)) {
-          if (u2.inviteCode === l1.invitedBy) { level2Uid = uid2; break; }
-        }
-        if (level2Uid) {
-          const l2bonus = depositAmount * 0.03;
-          const l2snap = await get(ref(db, `users/${level2Uid}`));
-          if (l2snap.exists()) {
-            const l2 = l2snap.val();
-            await update(ref(db, `users/${level2Uid}`), { balance: (l2.balance||0) + l2bonus });
-            await push(ref(db, `transactions/${level2Uid}`), {
-              type:'commission', amount: l2bonus, desc:`Level 2 Referral Commission (3%)`, status:'approved', ts: Date.now()
-            });
-            // Level 3
-            if (l2.invitedBy) {
-              for (const [uid3, u3] of Object.entries(users)) {
-                if (u3.inviteCode === l2.invitedBy) { level3Uid = uid3; break; }
-              }
-              if (level3Uid) {
-                const l3bonus = depositAmount * 0.01;
-                const l3snap = await get(ref(db, `users/${level3Uid}`));
-                if (l3snap.exists()) {
-                  const l3 = l3snap.val();
-                  await update(ref(db, `users/${level3Uid}`), { balance: (l3.balance||0) + l3bonus });
-                  await push(ref(db, `transactions/${level3Uid}`), {
-                    type:'commission', amount: l3bonus, desc:`Level 3 Referral Commission (1%)`, status:'approved', ts: Date.now()
-                  });
-                }
-              }
-            }
+    // Initialize initial system database
+    function initDatabase() {
+      if (!localStorage.getItem(DB_USERS_KEY)) {
+        const seedUsers = {
+          'demo_acc': {
+            id: 'demo_acc',
+            phone: '911111111',
+            balance: 15400,
+            inviteCode: 'EWC911',
+            invitedBy: null,
+            bankName: 'SIMULATED MEMBER',
+            bankAcc: '100083920192',
+            activeVip: 'vip2',
+            vipPurchasedAt: Date.now() - 3600000 * 24,
+            vipExpiry: Date.now() + 3600000 * 24 * 59,
+            vipLastPaid: Date.now() - 3600000 * 12,
+            teamDeposit: 45000,
+            registeredAt: Date.now() - 3600000 * 240,
+            hasApprovedDeposit: true
           }
-        }
+        };
+        localStorage.setItem(DB_USERS_KEY, JSON.stringify(seedUsers));
+      }
+
+      if (!localStorage.getItem(DB_TXS_KEY)) {
+        const seedTxs = [
+          { id: 'tx_seed_1', userId: 'demo_acc', type: 'commission', amount: 600, desc: 'Registration Bonus 🎁', status: 'approved', ts: Date.now() - 3600000 * 240 },
+          { id: 'tx_seed_2', userId: 'demo_acc', type: 'deposit', amount: 1500, ft: 'FT240162098', orderRef: 'EWC928103', status: 'approved', ts: Date.now() - 3600000 * 50 },
+          { id: 'tx_seed_3', userId: 'demo_acc', type: 'vip', amount: -1500, desc: 'VIP 2 Plan Purchased 🛒', status: 'approved', ts: Date.now() - 3600000 * 48 },
+          { id: 'tx_seed_4', userId: 'demo_acc', type: 'commission', amount: 300, desc: 'VIP 2 Daily Mining Reward 💰', status: 'approved', ts: Date.now() - 3600000 * 12 }
+        ];
+        localStorage.setItem(DB_TXS_KEY, JSON.stringify(seedTxs));
       }
     }
-  }
-}
-window.processReferralBonus = processReferralBonus;
 
-// ===== UTILITY =====
-window.copyText = function(text) {
-  navigator.clipboard.writeText(text).then(()=>showNotif('Copied to clipboard! 📋', 'success'));
-};
-window.copyInviteLink = function() {
-  const link = document.getElementById('my-invite-link').textContent;
-  navigator.clipboard.writeText(link).then(()=>showNotif('Invite link copied! 📋', 'success'));
-};
+    // Load Local Storages
+    function loadState() {
+      initDatabase();
+      const sessId = localStorage.getItem(DB_SESSION_KEY);
+      if (sessId) {
+        const users = JSON.parse(localStorage.getItem(DB_USERS_KEY));
+        if (users[sessId]) {
+          state.currentUser = users[sessId];
+          const allTxs = JSON.parse(localStorage.getItem(DB_TXS_KEY));
+          state.transactions = allTxs.filter(t => t.userId === sessId);
+          checkAndProcessAutoMining(); // Check daily income on load
+          showMainApp();
+        } else {
+          showAuthScreen();
+        }
+      } else {
+        showAuthScreen();
+      }
+    }
 
-function showNotif(msg, type='info') {
-  const el = document.getElementById('notif');
-  el.textContent = msg;
-  el.className = `notif show ${type}`;
-  setTimeout(()=>el.classList.remove('show'), 3500);
-}
-window.showNotif = showNotif;
+    // AUTOMATIC INCOME LOGIC (Every 24 hours)
+    function checkAndProcessAutoMining() {
+      if (!state.currentUser || !state.currentUser.activeVip) return;
+      
+      const now = Date.now();
+      const lastPaid = state.currentUser.vipLastPaid || state.currentUser.vipPurchasedAt;
+      const hourDiff = (now - lastPaid) / (1000 * 60 * 60);
 
-window.previewImage = function(input, previewId) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = document.getElementById(previewId);
-    img.src = e.target.result;
-    img.style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-};
+      if (hourDiff >= 24) {
+        const daysToPay = Math.floor(hourDiff / 24);
+        const plan = VIP_PLANS.find(v => v.id === state.currentUser.activeVip);
+        const totalIncome = plan.daily * daysToPay;
 
-// ===== AUTO-FILL INVITE FROM URL =====
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  const ref = params.get('ref');
-  if (ref) {
-    document.getElementById('reg-invite').value = ref;
-    document.getElementById('inv-val').textContent = ref;
-  }
-})();
+        const newPaidTime = lastPaid + (daysToPay * 24 * 60 * 60 * 1000);
+        
+        saveCurrentUserUpdate({
+          balance: state.currentUser.balance + totalIncome,
+          vipLastPaid: newPaidTime
+        });
 
-// ===== INIT =====
-setTimeout(()=>{
-  const ls = document.getElementById('loading-screen');
-  ls.style.opacity = '0';
-  ls.style.transition = 'opacity 0.5s';
-  setTimeout(()=>ls.style.display='none', 500);
-}, 2000);
-</script>
+        const tx = {
+          id: 'auto_mining_' + now,
+          userId: state.currentUser.id,
+          type: 'commission',
+          amount: totalIncome,
+          desc: `${plan.name} ዕለታዊ ገቢ (+${daysToPay} ቀን)`,
+          status: 'approved',
+          ts: now
+        };
+        logNewTransaction(tx);
+        showToast(`💰 የ ${daysToPay} ቀን ገቢ +${totalIncome.toLocaleString()} ETB በራስ-ሰር ተጨምሯል!`, 'success');
+      }
+    }
+
+    // Save single user updates
+    function saveCurrentUserUpdate(fields) {
+      if (!state.currentUser) return;
+      const users = JSON.parse(localStorage.getItem(DB_USERS_KEY));
+      const uid = state.currentUser.id;
+      users[uid] = { ...users[uid], ...fields };
+      localStorage.setItem(DB_USERS_KEY, JSON.stringify(users));
+      state.currentUser = users[uid];
+      renderStateUI();
+    }
+
+    // Log Transaction record
+    function logNewTransaction(tx) {
+      const all = JSON.parse(localStorage.getItem(DB_TXS_KEY));
+      all.push(tx);
+      localStorage.setItem(DB_TXS_KEY, JSON.stringify(all));
+      if (state.currentUser && tx.userId === state.currentUser.id) {
+        state.transactions.push(tx);
+      }
+    }
+
+    function reloadTransactionsInMemory() {
+      if (!state.currentUser) return;
+      const all = JSON.parse(localStorage.getItem(DB_TXS_KEY));
+      state.transactions = all.filter(t => t.userId === state.currentUser.id);
+      renderTransactionsList();
+    }
+
+    function checkInviteURLQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const referralCode = params.get('ref');
+      if (referralCode) {
+        document.getElementById('reg-invite').value = referralCode;
+        document.getElementById('inv-val').textContent = referralCode;
+      }
+    }
+
+    // ===== UI NAVIGATION CONTROL =====
+    function switchAuthTab(tab) {
+      document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+      const tabBtns = document.querySelectorAll('.auth-tab');
+      tabBtns[0].classList.toggle('active', tab === 'register');
+      tabBtns[1].classList.toggle('active', tab === 'login');
+    }
+
+    function navigateTo(pageId) {
+      state.activeNavTab = pageId;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(`page-${pageId}`).classList.add('active');
+      document.getElementById(`nav-btn-${pageId}`).classList.add('active');
+      
+      const titles = {
+        home: 'EWC HOME (መነሻ ገጽ)',
+        vip: '👑 ቪአይፒ ገቢ ዕቅዶች',
+        tx: '📊 የገንዘብ ሪፖርቶች',
+        portfolio: '💼 የቡድን ማይልስቶኖች',
+        my: '👤 የግል አካውንት'
+      };
+      document.getElementById('page-title-label').textContent = titles[pageId] || '';
+      renderStateUI();
+    }
+
+    function showToast(msg, type = 'info') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = `toast show ${type}`;
+      setTimeout(() => { el.classList.remove('show'); }, 3500);
+    }
+
+    window.openDepositModal = function() {
+      document.getElementById('dep-step-1').style.display = 'block';
+      document.getElementById('dep-step-2').style.display = 'none';
+      document.getElementById('dep-step-3').style.display = 'none';
+      document.getElementById('dep-pstep1').className = 'p-step active';
+      document.getElementById('dep-pstep2').className = 'p-step';
+      document.getElementById('dep-pstep3').className = 'p-step';
+      document.getElementById('input-dep-amount').value = '1500';
+      document.getElementById('input-dep-ft').value = '';
+      document.getElementById('receipt-preview').style.display = 'none';
+      clearInterval(state.depositTimer);
+      state.depositTimerLimit = 14 * 60;
+      document.getElementById('deposit-modal').classList.add('active');
+    };
+
+    window.openWithdrawModal = function() {
+      if (!state.currentUser) return;
+      if (!state.currentUser.activeVip) {
+        showToast('ገንዘብ ለማውጣት መጀመሪያ VIP መግዛት አለብዎት!', 'error');
+        return;
+      }
+      const hasBank = state.currentUser.bankName && state.currentUser.bankAcc;
+      document.getElementById('with-no-bank-warn').style.display = hasBank ? 'none' : 'block';
+      document.getElementById('with-bank-details-disp').style.display = hasBank ? 'block' : 'none';
+      if (hasBank) {
+        document.getElementById('lbl-with-bank-name').textContent = state.currentUser.bankName;
+        document.getElementById('lbl-with-bank-acc').textContent = state.currentUser.bankAcc;
+      }
+      document.getElementById('lbl-with-available-bal').textContent = `${state.currentUser.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB`;
+      document.getElementById('input-with-amount').value = '';
+      document.getElementById('withdraw-modal').classList.add('active');
+    };
+
+    window.closeModal = function(id) {
+      document.getElementById(id).classList.remove('active');
+      if (id === 'deposit-modal') clearInterval(state.depositTimer);
+    };
+
+    window.previewReceiptImage = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const r = new FileReader();
+        r.onload = function(event) {
+          const img = document.getElementById('receipt-preview');
+          img.src = event.target.result;
+          img.style.display = 'block';
+        };
+        r.readAsDataURL(file);
+      }
+    };
+
+    window.copyText = function(txt) {
+      navigator.clipboard.writeText(txt).then(() => { showToast('ኮፒ ተደርጓል! 📋', 'success'); });
+    };
+
+    window.copyReferralLink = function() {
+      const txt = document.getElementById('referral-link-disp').textContent;
+      navigator.clipboard.writeText(txt).then(() => { showToast('የግብዣ ሊንኩ ኮፒ ተደርጓል! 📋', 'success'); });
+    };
+
+    function showAuthScreen() {
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('auth-page').style.display = 'flex';
+      document.getElementById('main-app').style.display = 'none';
+    }
+
+    function showMainApp() {
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('auth-page').style.display = 'none';
+      document.getElementById('main-app').style.display = 'block';
+      navigateTo('home');
+    }
+
+    window.getVerificationCode = function() {
+      const phone = document.getElementById('reg-phone').value;
+      if (!phone || phone.length < 9) {
+        showToast('እባክዎ መጀመሪያ ትክክለኛ ስልክ ያስገቡ!', 'error');
+        return;
+      }
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      state.fakeCodeSent = code;
+      document.getElementById('reg-verify').value = code;
+      showToast(`የማረጋገጫ ኮድዎ፡ ${code}`, 'success');
+    };
+
+    window.handleRegister = function(e) {
+      e.preventDefault();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const pass = document.getElementById('reg-pass').value;
+      const verify = document.getElementById('reg-verify').value.trim();
+      const invite = document.getElementById('reg-invite').value;
+      if (phone.length < 9) return showToast('ትክክለኛ ስልክ ቁጥር ያስገቡ!', 'error');
+      if (pass.length < 6) return showToast('የይለፍ ቃል ቢያንስ 6 ቁምፊ ይሁን!', 'error');
+      if (verify !== state.fakeCodeSent) return showToast('ትክክለኛ ያልሆነ ማረጋገጫ ኮድ!', 'error');
+
+      const users = JSON.parse(localStorage.getItem(DB_USERS_KEY));
+      if (Object.values(users).find(u => u.phone === phone)) return showToast('ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!', 'error');
+
+      const uid = 'ewc_' + Math.random().toString(36).substring(2, 9);
+      const newUser = {
+        id: uid, phone, balance: 600, inviteCode: 'EWC' + Math.floor(100000 + Math.random() * 900000),
+        invitedBy: invite || 'EWC2024', bankName: '', bankAcc: '', activeVip: null,
+        vipPurchasedAt: null, vipExpiry: null, vipLastPaid: null, teamDeposit: 0,
+        registeredAt: Date.now(), hasApprovedDeposit: false
+      };
+      users[uid] = newUser;
+      localStorage.setItem(DB_USERS_KEY, JSON.stringify(users));
+      logNewTransaction({ id: 'tx_welcome_' + Date.now(), userId: uid, type: 'commission', amount: 600, desc: 'Registration Bonus 🎁', status: 'approved', ts: Date.now() });
+      localStorage.setItem(DB_SESSION_KEY, uid);
+      state.currentUser = newUser;
+      showMainApp();
+    };
+
+    window.handleLogin = function(e) {
+      e.preventDefault();
+      const phone = document.getElementById('login-phone').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const users = JSON.parse(localStorage.getItem(DB_USERS_KEY));
+      const user = Object.values(users).find(u => u.phone === phone);
+      if (!user) return showToast('አካውንት አልተገኘም!', 'error');
+      localStorage.setItem(DB_SESSION_KEY, user.id);
+      state.currentUser = user;
+      loadState();
+    };
+
+    window.handleSignOut = function() {
+      localStorage.removeItem(DB_SESSION_KEY);
+      window.location.reload();
+    };
+
+    window.saveBankInformation = function() {
+      const name = document.getElementById('bank-holder-name').value.trim();
+      const acc = document.getElementById('bank-acc-num').value.trim();
+      if (!name || !acc) return showToast('ሁሉንም መረጃ ይሙሉ።', 'error');
+      saveCurrentUserUpdate({ bankName: name, bankAcc: acc });
+      showToast('መረጃው ተቀምጧል! 🏦', 'success');
+    };
+
+    window.proceedToPaymentDetailsStep = function() {
+      const amt = parseFloat(document.getElementById('input-dep-amount').value);
+      const ft = document.getElementById('input-dep-ft').value.trim();
+      if (isNaN(amt) || amt <= 0 || !ft) return showToast('መረጃዎችን በትክክል ይሙሉ!', 'error');
+      const orderRef = 'EWC' + Math.floor(100000 + Math.random() * 900000);
+      document.getElementById('lbl-dep-target-amt').textContent = `Br ${amt.toLocaleString()}`;
+      document.getElementById('lbl-dep-order-ref').textContent = orderRef;
+      document.getElementById('dep-step-1').style.display = 'none';
+      document.getElementById('dep-step-2').style.display = 'block';
+      document.getElementById('dep-pstep2').className = 'p-step active';
+      document.getElementById('dep-pstep1').className = 'p-step done';
+      startCountTimer();
+    };
+
+    function startCountTimer() {
+      const indicator = document.getElementById('lbl-dep-timer');
+      state.depositTimer = setInterval(() => {
+        state.depositTimerLimit--;
+        const mins = Math.floor(state.depositTimerLimit / 60);
+        const secs = state.depositTimerLimit % 60;
+        indicator.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        if (state.depositTimerLimit <= 0) clearInterval(state.depositTimer);
+      }, 1000);
+    }
+
+    window.confirmPaymentAndSubmit = function() {
+      clearInterval(state.depositTimer);
+      const amt = parseFloat(document.getElementById('input-dep-amount').value);
+      const ft = document.getElementById('input-dep-ft').value.trim();
+      const orderRef = document.getElementById('lbl-dep-order-ref').textContent;
+      const txId = 'tx_dep_' + Date.now();
+      logNewTransaction({ id: txId, userId: state.currentUser.id, type: 'deposit', amount: amt, ft: ft, orderRef: orderRef, status: 'waiting', ts: Date.now() });
+      document.getElementById('dep-step-2').style.display = 'none';
+      document.getElementById('dep-step-3').style.display = 'block';
+      document.getElementById('dep-pstep3').className = 'p-step active';
+      document.getElementById('dep-pstep2').className = 'p-step done';
+    };
+
+    window.submitWithdrawalRequest = function() {
+      const amt = parseFloat(document.getElementById('input-with-amount').value);
+      if (isNaN(amt) || amt < 1000) return showToast('ዝቅተኛ ማውጫ 1000 ETB ነው!', 'error');
+      if (state.currentUser.balance < amt) return showToast('በቂ ቀሪ ሂሳብ የለም!', 'error');
+      const fee = amt * 0.15;
+      const net = amt - fee;
+      const hour = new Date().getHours();
+      if (hour < 9 || hour >= 21) return showToast('ከ 3:00 - 3:00 ሰዓት ብቻ ይቻላል!', 'error');
+      if (new Date().getDay() === 0) return showToast('እሁድ ማውጣት አይቻልም!', 'error');
+
+      saveCurrentUserUpdate({ balance: state.currentUser.balance - amt });
+      logNewTransaction({ id: 'tx_with_' + Date.now(), userId: state.currentUser.id, type: 'withdraw', amount: -amt, netAmount: net, status: 'waiting', ts: Date.now(), desc: `Withdrawal (Fee 15%)` });
+      closeModal('withdraw-modal');
+      showToast(`ጥያቄው ተልኳል፤ አድሚን ሲያጸድቅ ይላካል!`, 'success');
+    };
+
+    window.purchaseVipPlan = function(vipId) {
+      if (!state.currentUser.hasApprovedDeposit) return showToast('VIP ለመግዛት መጀመሪያ ዲፖዚት ማድረግ አለብዎት!', 'error');
+      const plan = VIP_PLANS.find(v => v.id === vipId);
+      if (state.currentUser.balance < plan.price) return showToast(`በቂ ቀሪ ሂሳብ የለም፤ ${plan.price} ETB ያስፈልጋል!`, 'error');
+      if (!confirm(`${plan.name} ለመግዛት እርግጠኛ ነዎት?`)) return;
+
+      saveCurrentUserUpdate({
+        balance: state.currentUser.balance - plan.price,
+        activeVip: vipId,
+        vipPurchasedAt: Date.now(),
+        vipExpiry: Date.now() + plan.days * 24 * 3600 * 1000,
+        vipLastPaid: Date.now()
+      });
+      logNewTransaction({ id: 'tx_vip_buy_' + Date.now(), userId: state.currentUser.id, type: 'vip', amount: -plan.price, desc: `${plan.name} Purchased 👑`, status: 'approved', ts: Date.now() });
+      showToast(`${plan.name} ገቢ ዕቅድ በርቷል!`, 'success');
+    };
+
+    function renderStateUI() {
+      if (!state.currentUser) return;
+      const u = state.currentUser;
+      document.getElementById('disp-balance').textContent = `${u.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB`;
+      document.getElementById('disp-phone').textContent = `+251 ${u.phone}`;
+      document.getElementById('my-profile-phone').textContent = `+251 ${u.phone}`;
+      document.getElementById('my-profile-id').textContent = u.id;
+      const vipLabel = document.getElementById('my-profile-vip');
+      const banner = document.getElementById('active-plan-banner');
+      if (u.activeVip) {
+        const plan = VIP_PLANS.find(v => v.id === u.activeVip);
+        vipLabel.textContent = `${plan.name} Active`;
+        vipLabel.style.background = 'var(--gold)';
+        banner.style.display = 'block';
+        document.getElementById('active-plan-name').textContent = plan.name;
+        document.getElementById('active-plan-income').textContent = `+${plan.daily} ETB/ቀን`;
+      } else {
+        vipLabel.textContent = 'No VIP';
+        banner.style.display = 'none';
+      }
+      document.getElementById('referral-link-disp').textContent = `${window.location.origin}/?ref=${u.inviteCode}`;
+      renderVipList();
+      renderTransactionsList();
+      renderPortfolioMilestones();
+    }
+
+    function renderVipList() {
+      const container = document.getElementById('vip-list-container');
+      container.innerHTML = '';
+      VIP_PLANS.forEach(p => {
+        const isOwned = state.currentUser.activeVip === p.id;
+        const card = document.createElement('div');
+        card.className = `vip-card ${p.id}`;
+        card.innerHTML = `
+          <div class="vip-top">
+            <div class="vip-phone">${p.phoneIcon}</div>
+            <div>
+              <div class="vip-info"><h3>${p.name}</h3></div>
+              <div class="vip-price">${p.price.toLocaleString()} ETB</div>
+            </div>
+          </div>
+          <div class="vip-stats">
+            <div class="vip-stat"><div class="vs-label">ዋጋ</div><div class="vs-val gold">${p.price}</div></div>
+            <div class="vip-stat"><div class="vs-label">ዕለታዊ</div><div class="vs-val">+${p.daily}</div></div>
+            <div class="vip-stat"><div class="vs-label">ቆይታ</div><div class="vs-val gold">${p.days} ቀናት</div></div>
+          </div>
+          <button class="buy-btn ${isOwned ? 'owned' : ''}" onclick="${isOwned ? '' : `purchaseVipPlan('${p.id}')`}">
+            ${isOwned ? '✅ የነቃ ዕቅድ' : `🛒 አሁን ይግዙ`}
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderTransactionsList() {
+      const container = document.getElementById('transactions-log-list');
+      container.innerHTML = '';
+      const tab = state.activeTxTab;
+      const list = (state.transactions || []).filter(t => {
+        if (tab === 'deposit') return t.type === 'deposit';
+        if (tab === 'withdraw') return t.type === 'withdraw';
+        return t.type === 'commission' || t.type === 'vip';
+      }).sort((a,b) => b.ts - a.ts);
+
+      if (list.length === 0) {
+        container.innerHTML = `<p style="text-align:center; padding:40px; color:var(--text3);">ምንም ሪፖርት የለም!</p>`;
+        return;
+      }
+      list.forEach(tx => {
+        const row = document.createElement('div');
+        row.className = 'tx-item';
+        row.innerHTML = `
+          <div class="tx-left">
+            <div class="tx-details">
+              <span class="tx-title">${tx.type.toUpperCase()}</span>
+              <span class="tx-time">${new Date(tx.ts).toLocaleString()}</span>
+              <span class="tx-status-badge ${tx.status}">${tx.status === 'approved' ? 'የጸደቀ ✅' : 'በመጠባበቅ ላይ ⏳'}</span>
+            </div>
+          </div>
+          <div class="tx-right"><span class="tx-amount ${tx.amount > 0 ? 'plus' : 'minus'}">${tx.amount.toLocaleString()} ETB</span></div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderPortfolioMilestones() {
+      const container = document.getElementById('portfolio-levels-container');
+      container.innerHTML = '';
+      const teamDep = state.currentUser.teamDeposit || 0;
+      document.getElementById('team-cumulative-view').textContent = `${teamDep.toLocaleString()} ETB`;
+      PORTFOLIO_LEVELS.forEach(lv => {
+        const progress = Math.min(100, (teamDep / lv.target) * 100);
+        const row = document.createElement('div');
+        row.className = 'level-item';
+        row.innerHTML = `
+          <div class="level-num">L${lv.level}</div>
+          <div class="level-body">
+            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold;">
+              <span>ደረጃ ${lv.level}</span><span>+${lv.reward} ETB</span>
+            </div>
+            <div class="level-progress"><div class="prog-bar"><div class="prog-fill" style="width: ${progress}%"></div></div></div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    window.onload = function() {
+      loadState();
+      checkInviteURLQuery();
+      setTimeout(() => { document.getElementById('loading-screen').style.display = 'none'; }, 1500);
+    };
+
+    window.switchTxTab = function(tab) {
+      state.activeTxTab = tab;
+      document.querySelectorAll('.tx-tab').forEach((el, index) => {
+        const tabs = ['deposit', 'withdraw', 'commission'];
+        el.classList.toggle('active', tabs[index] === tab);
+      });
+      renderTransactionsList();
+    };
+  </script>
 </body>
 </html>
