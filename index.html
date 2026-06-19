@@ -1678,6 +1678,14 @@
     // ===== LOAD STATE FROM FIREBASE =====
     async function loadState() {
       await initDatabaseIfEmpty();
+
+      // If URL has ?ref= invite code, always show auth/register screen — never auto-login
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('ref')) {
+        showAuthScreen();
+        return;
+      }
+
       const sessId = localStorage.getItem(DB_SESSION_KEY);
       if (sessId) {
         const user = await fbGetUser(sessId);
