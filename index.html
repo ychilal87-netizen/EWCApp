@@ -1,3 +1,5 @@
+Electronic Wealth Class 
+
 <!DOCTYPE html>
 <html lang="am">
 <head>
@@ -882,13 +884,75 @@
     }
     .level-reward {
       text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
     }
     .level-reward .reward-amount {
       font-size: 12px;
       font-weight: 700;
       color: var(--green2);
     }
+    .claim-btn {
+        font-size: 10px;
+        padding: 4px 8px;
+        background: var(--gold);
+        color: black;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .claim-btn:disabled {
+        background: var(--dark3);
+        color: var(--text3);
+        cursor: not-allowed;
+    }
     
+    /* TEAM TABLE STYLES */
+    .team-section {
+        margin-top: 24px;
+    }
+    .team-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    .team-tab {
+        flex: 1;
+        background: var(--dark3);
+        padding: 8px;
+        text-align: center;
+        border-radius: 8px;
+        font-size: 11px;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+    .team-tab.active {
+        border-color: var(--gold);
+        background: var(--dark4);
+        font-weight: bold;
+    }
+    .member-list {
+        background: var(--dark2);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .member-row {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr;
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 11px;
+    }
+    .member-row:last-child { border-bottom: none; }
+    .m-phone { font-weight: bold; }
+    .m-date { color: var(--text3); font-size: 9px; }
+    .m-vip { color: var(--gold); font-weight: bold; text-align: right;}
+
     /* TRANSACTION RECORD LIST */
     .tx-tabs {
       display: flex;
@@ -1297,7 +1361,7 @@
       </div>
     </div>
 
-    <!-- PORTFOLIO MILESTONES -->
+    <!-- PORTFOLIO MILESTONES & TEAM LIST -->
     <div class="page" id="page-portfolio">
       <div class="portfolio-header">
         <div class="portfolio-total">
@@ -1306,8 +1370,22 @@
         </div>
         <p style="font-size:11px;color:var(--text3);margin-top:6px;">የተባባሪዎችዎ ማስገቢያ መጠን ሲጨምር የሚለቀቁ ታላላቅ ሽልማቶች</p>
       </div>
+
       <div class="portfolio-levels" id="portfolio-levels-container">
         <!-- Milestone targets loaded dynamically -->
+      </div>
+
+      <!-- TEAM MEMBERS SECTION -->
+      <div class="team-section">
+          <h3 style="font-size: 13px; color: var(--gold); margin-bottom: 12px;">👥 የቡድን አባላት (Team Members)</h3>
+          <div class="team-tabs">
+              <div class="team-tab active" id="tab-l1" onclick="switchTeamTab(1)">ደረጃ 1 (30%)</div>
+              <div class="team-tab" id="tab-l2" onclick="switchTeamTab(2)">ደረጃ 2 (3%)</div>
+              <div class="team-tab" id="tab-l3" onclick="switchTeamTab(3)">ደረጃ 3 (1%)</div>
+          </div>
+          <div class="member-list" id="team-members-container">
+              <!-- Dynamically rendered -->
+          </div>
       </div>
     </div>
 
@@ -1568,6 +1646,7 @@
     ];
 
     // ===== PORTFOLIO LEVEL TARGET MILESTONES =====
+    // targets double, rewards double
     const PORTFOLIO_LEVELS = [
       { level: 1, target: 20000, reward: 2000 },
       { level: 2, target: 40000, reward: 4000 },
@@ -1578,15 +1657,17 @@
       { level: 7, target: 1280000, reward: 128000 },
     ];
 
-    // ===== SESSION KEY (still uses localStorage just for session uid) =====
+    // ===== SESSION KEY =====
     const DB_SESSION_KEY = 'ewc_firebase_sess_uid';
 
     // ===== APPLICATION STATE CONFIGURATION =====
     let state = {
       currentUser: null,
       transactions: [],
+      allUsers: [], // cache for team view
       activeNavTab: 'home',
       activeTxTab: 'deposit',
+      activeTeamTab: 1,
       fakeCodeSent: null,
       depositTimer: null,
       depositTimerLimit: 14 * 60,
@@ -1640,8 +1721,14 @@
       const users = snap.val();
       return Object.values(users).some(u => u.phone === phone);
     }
+    
+    // NEW: Fetch all users to build team tree
+    async function fbGetAllUsers() {
+        const snap = await get(ref(db, 'users'));
+        return snap.exists() ? Object.values(snap.val()) : [];
+    }
 
-    // ===== INITIALIZE DEMO SEED DATA (only if DB empty) =====
+    // ===== INITIALIZE DEMO SEED DATA =====
     async function initDatabaseIfEmpty() {
       const snap = await get(ref(db, 'users/demo_acc'));
       if (!snap.exists()) {
@@ -1658,20 +1745,11 @@
           vipExpiry: Date.now() + 3600000 * 24 * 59,
           vipLastPaid: Date.now() - 3600000 * 12,
           teamDeposit: 45000,
+          claimedRewards: [],
           registeredAt: Date.now() - 3600000 * 240,
           hasApprovedDeposit: true
         };
         await fbSetUser('demo_acc', seedUser);
-
-        const seedTxs = [
-          { id: 'tx_seed_1', userId: 'demo_acc', type: 'commission', amount: 600, desc: 'Registration Bonus 🎁', status: 'approved', ts: Date.now() - 3600000 * 240 },
-          { id: 'tx_seed_2', userId: 'demo_acc', type: 'deposit', amount: 1500, ft: 'FT240162098', orderRef: 'EWC928103', status: 'approved', ts: Date.now() - 3600000 * 50 },
-          { id: 'tx_seed_3', userId: 'demo_acc', type: 'vip', amount: -1500, desc: 'VIP 2 Plan Purchased 🛒', status: 'approved', ts: Date.now() - 3600000 * 48 },
-          { id: 'tx_seed_4', userId: 'demo_acc', type: 'commission', amount: 300, desc: 'VIP 2 Daily Mining Reward 💰', status: 'approved', ts: Date.now() - 3600000 * 12 }
-        ];
-        for (const tx of seedTxs) {
-          await fbLogTransaction(tx);
-        }
       }
     }
 
@@ -1679,7 +1757,6 @@
     async function loadState() {
       await initDatabaseIfEmpty();
 
-      // If URL has ?ref= invite code, always show auth/register screen — never auto-login
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('ref')) {
         showAuthScreen();
@@ -1692,6 +1769,7 @@
         if (user) {
           state.currentUser = user;
           state.transactions = await fbGetUserTransactions(sessId);
+          state.allUsers = await fbGetAllUsers();
           checkAndProcessAutoMining();
           showMainApp();
         } else {
@@ -1702,7 +1780,7 @@
       }
     }
 
-    // AUTOMATIC INCOME LOGIC (Every 24 hours)
+    // AUTOMATIC INCOME LOGIC
     async function checkAndProcessAutoMining() {
       if (!state.currentUser || !state.currentUser.activeVip) return;
       
@@ -1740,7 +1818,6 @@
       }
     }
 
-    // Save current user fields to Firebase
     async function saveCurrentUserUpdate(fields) {
       if (!state.currentUser) return;
       await fbUpdateUser(state.currentUser.id, fields);
@@ -1748,24 +1825,10 @@
       renderStateUI();
     }
 
-    // Log Transaction to Firebase
     async function logNewTransaction(tx) {
       await fbLogTransaction(tx);
       if (state.currentUser && tx.userId === state.currentUser.id) {
         state.transactions.push(tx);
-      }
-    }
-
-    // ===== INVITE CODE URL HANDLER =====
-    // Only sets invite code in form — does NOT redirect to dashboard
-    function checkInviteURLQuery() {
-      const params = new URLSearchParams(window.location.search);
-      const referralCode = params.get('ref');
-      if (referralCode) {
-        document.getElementById('reg-invite').value = referralCode;
-        document.getElementById('inv-val').textContent = referralCode;
-        // Switch to register tab so user sees the referral code
-        switchAuthTab('register');
       }
     }
 
@@ -1787,7 +1850,7 @@
       document.getElementById(`nav-btn-${pageId}`).classList.add('active');
       
       const titles = {
-        home: 'EWC HOME (መነሻ ገጽ)',
+        home: 'EWC HOME',
         vip: '👑 ቪአይፒ ገቢ ዕቅዶች',
         tx: '📊 የገንዘብ ሪፖርቶች',
         portfolio: '💼 የቡድን ማይልስቶኖች',
@@ -1869,8 +1932,14 @@
       document.getElementById('loading-screen').style.display = 'none';
       document.getElementById('auth-page').style.display = 'flex';
       document.getElementById('main-app').style.display = 'none';
-      // Apply referral code from URL after auth screen shows
-      checkInviteURLQuery();
+      
+      const params = new URLSearchParams(window.location.search);
+      const referralCode = params.get('ref');
+      if (referralCode) {
+        document.getElementById('reg-invite').value = referralCode;
+        document.getElementById('inv-val').textContent = referralCode;
+        switchAuthTab('register');
+      }
     }
 
     function showMainApp() {
@@ -1911,6 +1980,7 @@
         id: uid, phone, balance: 600, inviteCode: 'EWC' + Math.floor(100000 + Math.random() * 900000),
         invitedBy: invite || 'EWC2024', bankName: '', bankAcc: '', activeVip: null,
         vipPurchasedAt: null, vipExpiry: null, vipLastPaid: null, teamDeposit: 0,
+        claimedRewards: [],
         registeredAt: Date.now(), hasApprovedDeposit: false
       };
       await fbSetUser(uid, newUser);
@@ -1926,7 +1996,6 @@
       };
       await fbLogTransaction(welcomeTx);
 
-      // Credit referral commission to inviter (L1: 30% of registration bonus = 180 ETB)
       if (invite && invite !== 'EWC2024') {
         const inviter = await fbGetUserByInviteCode(invite);
         if (inviter) {
@@ -1959,6 +2028,7 @@
       localStorage.setItem(DB_SESSION_KEY, user.id);
       state.currentUser = user;
       state.transactions = await fbGetUserTransactions(user.id);
+      state.allUsers = await fbGetAllUsers();
       checkAndProcessAutoMining();
       showMainApp();
     };
@@ -2018,11 +2088,53 @@
         ts: Date.now()
       };
       await logNewTransaction(tx);
+      
+      // Automatic Commission Logic for the 3-level uplines (Simulated as if admin approved)
+      // In a real production, this logic happens in the backend/cloud function upon manual admin approval.
+      // But per request, I am adding the hook here.
+      // processDepositCommissions(state.currentUser.id, amt); // Un-comment if you want instant auto-approval demo
+      
       document.getElementById('dep-step-2').style.display = 'none';
       document.getElementById('dep-step-3').style.display = 'block';
       document.getElementById('dep-pstep3').className = 'p-step active';
       document.getElementById('dep-pstep2').className = 'p-step done';
     };
+
+    // COMMISSION LOGIC: 30%, 3%, 1%
+    async function processDepositCommissions(userId, amount) {
+        const user = await fbGetUser(userId);
+        if(!user) return;
+
+        // Level 1
+        if(user.invitedBy) {
+            const upline1 = await fbGetUserByInviteCode(user.invitedBy);
+            if(upline1 && upline1.activeVip) {
+                const comm = amount * 0.30;
+                await fbUpdateUser(upline1.id, { balance: upline1.balance + comm });
+                await fbLogTransaction({ id: 'comm_l1_'+Date.now(), userId: upline1.id, type: 'commission', amount: comm, desc: `L1 Commission from ${user.phone}`, status: 'approved', ts: Date.now() });
+                
+                // Level 2
+                if(upline1.invitedBy) {
+                    const upline2 = await fbGetUserByInviteCode(upline1.invitedBy);
+                    if(upline2 && upline2.activeVip) {
+                        const comm2 = amount * 0.03;
+                        await fbUpdateUser(upline2.id, { balance: upline2.balance + comm2 });
+                        await fbLogTransaction({ id: 'comm_l2_'+Date.now(), userId: upline2.id, type: 'commission', amount: comm2, desc: `L2 Commission from ${user.phone}`, status: 'approved', ts: Date.now() });
+                        
+                        // Level 3
+                        if(upline2.invitedBy) {
+                            const upline3 = await fbGetUserByInviteCode(upline2.invitedBy);
+                            if(upline3 && upline3.activeVip) {
+                                const comm3 = amount * 0.01;
+                                await fbUpdateUser(upline3.id, { balance: upline3.balance + comm3 });
+                                await fbLogTransaction({ id: 'comm_l3_'+Date.now(), userId: upline3.id, type: 'commission', amount: comm3, desc: `L3 Commission from ${user.phone}`, status: 'approved', ts: Date.now() });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     window.submitWithdrawalRequest = async function() {
       const amt = parseFloat(document.getElementById('input-with-amount').value);
@@ -2080,6 +2192,36 @@
       showToast(`${plan.name} ገቢ ዕቅድ በርቷል!`, 'success');
     };
 
+    // CLAIM PORTFOLIO REWARD
+    window.claimPortfolioReward = async function(level, reward) {
+        if(!state.currentUser.activeVip) {
+            return showToast('ሽልማቱን ለመውሰድ መጀመሪያ VIP መሆን አለብዎት!', 'error');
+        }
+        
+        const claimed = state.currentUser.claimedRewards || [];
+        if(claimed.includes(level)) return;
+
+        const newBalance = state.currentUser.balance + reward;
+        claimed.push(level);
+
+        await saveCurrentUserUpdate({
+            balance: newBalance,
+            claimedRewards: claimed
+        });
+
+        await logNewTransaction({
+            id: 'reward_claim_' + Date.now(),
+            userId: state.currentUser.id,
+            type: 'commission',
+            amount: reward,
+            desc: `Portfolio Level ${level} Bonus 🎁`,
+            status: 'approved',
+            ts: Date.now()
+        });
+
+        showToast(`የደረጃ ${level} ሽልማት +${reward} ETB ወደ ባላንስዎ ተጨምሯል!`, 'success');
+    };
+
     function renderStateUI() {
       if (!state.currentUser) return;
       const u = state.currentUser;
@@ -2104,6 +2246,7 @@
       renderVipList();
       renderTransactionsList();
       renderPortfolioMilestones();
+      renderTeamMembers();
     }
 
     function renderVipList() {
@@ -2169,23 +2312,85 @@
       const container = document.getElementById('portfolio-levels-container');
       container.innerHTML = '';
       const teamDep = state.currentUser.teamDeposit || 0;
+      const claimed = state.currentUser.claimedRewards || [];
+      
       document.getElementById('team-cumulative-view').textContent = `${teamDep.toLocaleString()} ETB`;
+      
       PORTFOLIO_LEVELS.forEach(lv => {
         const progress = Math.min(100, (teamDep / lv.target) * 100);
+        const canClaim = teamDep >= lv.target && !claimed.includes(lv.level);
+        const isClaimed = claimed.includes(lv.level);
+
         const row = document.createElement('div');
         row.className = 'level-item';
         row.innerHTML = `
           <div class="level-num">L${lv.level}</div>
           <div class="level-body">
-            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold;">
-              <span>ደረጃ ${lv.level}</span><span>+${lv.reward} ETB</span>
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold;">
+              <span>ደረጃ ${lv.level} (Br ${lv.target.toLocaleString()})</span>
             </div>
             <div class="level-progress"><div class="prog-bar"><div class="prog-fill" style="width: ${progress}%"></div></div></div>
+          </div>
+          <div class="level-reward">
+            <span class="reward-amount">+${lv.reward.toLocaleString()} ETB</span>
+            <button class="claim-btn" ${canClaim ? '' : 'disabled'} onclick="claimPortfolioReward(${lv.level}, ${lv.reward})">
+              ${isClaimed ? 'የተወሰደ' : 'Claim'}
+            </button>
           </div>
         `;
         container.appendChild(row);
       });
     }
+
+    // TEAM MEMBERS LOGIC
+    function renderTeamMembers() {
+        const container = document.getElementById('team-members-container');
+        container.innerHTML = '';
+        const level = state.activeTeamTab;
+        
+        // Build levels
+        const L1 = state.allUsers.filter(u => u.invitedBy === state.currentUser.inviteCode);
+        const L1_codes = L1.map(u => u.inviteCode);
+        const L2 = state.allUsers.filter(u => L1_codes.includes(u.invitedBy));
+        const L2_codes = L2.map(u => u.inviteCode);
+        const L3 = state.allUsers.filter(u => L2_codes.includes(u.invitedBy));
+
+        let targetList = [];
+        if(level === 1) targetList = L1;
+        else if(level === 2) targetList = L2;
+        else if(level === 3) targetList = L3;
+
+        if(targetList.length === 0) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text3); font-size:11px;">ይህ ደረጃ ላይ እስካሁን አባል የለም።</div>';
+            return;
+        }
+
+        targetList.forEach(m => {
+            const row = document.createElement('div');
+            row.className = 'member-row';
+            const maskedPhone = `+251 ${m.phone.substring(0, 2)}****${m.phone.substring(7)}`;
+            const dateStr = new Date(m.registeredAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' });
+            const vipName = m.activeVip ? VIP_PLANS.find(v => v.id === m.activeVip).name : 'VIP 0';
+            
+            row.innerHTML = `
+                <div>
+                    <div class="m-phone">${maskedPhone}</div>
+                    <div class="m-date">${dateStr}</div>
+                </div>
+                <div class="m-vip">${vipName}</div>
+                <div style="text-align:right; font-weight:bold; color:var(--green2);">Active</div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    window.switchTeamTab = function(lv) {
+        state.activeTeamTab = lv;
+        document.getElementById('tab-l1').classList.toggle('active', lv === 1);
+        document.getElementById('tab-l2').classList.toggle('active', lv === 2);
+        document.getElementById('tab-l3').classList.toggle('active', lv === 3);
+        renderTeamMembers();
+    };
 
     window.switchTxTab = function(tab) {
       state.activeTxTab = tab;
@@ -2196,7 +2401,7 @@
       renderTransactionsList();
     };
 
-    // ===== APP ENTRY POINT =====
+    // APP ENTRY POINT
     window.onload = async function() {
       await loadState();
       setTimeout(() => { document.getElementById('loading-screen').style.display = 'none'; }, 1500);
