@@ -1996,7 +1996,7 @@
       if (invite && invite !== 'EWC2024') {
         const inviter = await fbGetUserByInviteCode(invite);
         if (inviter) {
-          const commissionAmt = Math.round(600 * 0.30);
+          const commissionAmt = Math.round(0 * 0.30);
           await fbUpdateUser(inviter.id, { balance: (inviter.balance || 0) + commissionAmt });
           await fbLogTransaction({
             id: 'tx_ref_comm_' + Date.now(),
